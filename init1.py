@@ -5,6 +5,8 @@ import pymysql.cursors
 #Initialize the app from Flask
 app = Flask(__name__)
 
+#new line
+
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
                        user='root',
