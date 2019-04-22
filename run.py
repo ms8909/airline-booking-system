@@ -83,12 +83,28 @@ def registerAuth_c():
 @app.route('/')
 def home():
     # global search
+
     return render_template('home.html')
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+	#grabs information from the forms
+	src_irport = request.form['src_irport']
+	des_airport = request.form['des_airport']
+	deparature_time = request.form['deparature_time']
+	round_trip = request.form['round_trip']
+	arrival_time = request.form['arrival_time']
+
+
     # global search
-    return render_template('global_home.html', username=username, posts=data1)
+    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+    cursor.execute(query, (username))
+    data1 = cursor.fetchall()
+    for each in data1:
+
+    cursor.close()
+
+    return render_template('global_home.html', flights=data1)
 
 @app.route('/view_my_flights_c', methods=['GET', 'POST'])
 def view_my_flights_c():
