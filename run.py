@@ -64,10 +64,16 @@ def registerAuth_c():
     city = request.form['city']
     state = request.form['state']
     passport_num = request.form['passport_num']
-    passport_exp = request.form['passport_exp']
-    passport_exp = request.form['passport_exp']
+    passport_exp_d = request.form['passport_exp_d']
+    passport_exp_m = request.form['passport_exp_m']
+    passport_exp_y = request.form['passport_exp_y']
 
-    dob = request.form['dob']
+    passport_country = request.form['passport_country']
+
+    dob_d = request.form['dob_d']
+    dob_m = request.form['dob_m']
+    dob_y = request.form['dob_y']
+
     password = request.form['password']
 	#cursor used to send queries
     cursor = conn.cursor()
@@ -83,8 +89,8 @@ def registerAuth_c():
         error = "This user already exists"
         return render_template('register_c.html', error = error)
     else:
-        ins = 'INSERT INTO customer VALUES(%s, %s)'
-        cursor.execute(ins, (username, password))
+        ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        cursor.execute(ins, (email, password, first_name, last_name, building_number, street, city, state, passport_num,passport_exp_d,passport_exp_m,passport_exp_y,passport_country,dob_d,dob_m,dob_y   ))
         conn.commit()
         cursor.close()
         return render_template('index.html')
