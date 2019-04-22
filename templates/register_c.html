@@ -2,8 +2,18 @@
 <head>
 </head>
 <body>
-<form action="/registerAuth" method="POST">
-	<input type="text" name = "username" placeholder="username" required/> </br>
+<form action="/registerAuth_c" method="POST">
+	<input type="text" name = "email" placeholder="Email" required/> </br>
+	<input type="text" name = "first_name" placeholder="First Name" required/> </br>
+	<input type="text" name = "Last Name" placeholder="Last Name" required/> </br>
+
+	<input type="text" name = "building_number" placeholder="Building Number" required/> </br>
+	<input type="text" name = "street" placeholder="Street" required/> </br>
+	<input type="text" name = "city" placeholder="City" required/> </br>
+	<input type="text" name = "state" placeholder="State" required/> </br>
+	<input type="text" name = "passport_num" placeholder="Passport Number" required/> </br>
+	<input type="text" name = "passport_exp" placeholder="Passport Expiration" required/> </br>
+	<input type="text" name = "dob" placeholder="Date Of Birth" required/> </br>]
 	<input type="password" name = "password" placeholder="password" required/></br>
 	<input type="submit" value = Register />
 	{% if error %}

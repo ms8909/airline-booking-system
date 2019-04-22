@@ -27,9 +27,9 @@ def login():
 	return render_template('login.html')
 
 #Define route for register
-@app.route('/register')
+@app.route('/register_c')
 def register():
-	return render_template('register.html')
+	return render_template('register_c.html')
 
 #Authenticates the login
 @app.route('/loginAuth', methods=['GET', 'POST'])
@@ -68,8 +68,8 @@ def registerAuth():
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s'
-	cursor.execute(query, (username))
+	query = 'SELECT * FROM customer WHERE email = %s'
+	cursor.execute(query, (email))
 	#stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
@@ -77,9 +77,9 @@ def registerAuth():
 	if(data):
 		#If the previous query returns data, then user exists
 		error = "This user already exists"
-		return render_template('register.html', error = error)
+		return render_template('register_c.html', error = error)
 	else:
-		ins = 'INSERT INTO user VALUES(%s, %s)'
+		ins = 'INSERT INTO customer VALUES(%s, %s)'
 		cursor.execute(ins, (username, password))
 		conn.commit()
 		cursor.close()
