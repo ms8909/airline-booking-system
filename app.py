@@ -125,15 +125,21 @@ def search():
     if round_trip=='No':
 
     	#executes query
-        query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
+        #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+        #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
+        #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
+
+
+        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y, ))
     	#stores the results in a variable
-        data = cursor.fetchone()
+        data = cursor.fetchall()
     	#use fetchall() if you are expecting more than 1 data row
         cursor.close()
         error = None
+        print(data)
         if(data):
-            return render_template('home.html', error='', flighs=data)
+            return render_template('home.html', error='', flights=data)
         else:
     		#returns an error message to the html page
             message = 'No Tickets available'
@@ -188,7 +194,8 @@ def purchase_ticket_c():
     # get information of the flight and send to the payment page to ask for credit card information
     cursor = conn.cursor();
 
-    return render_template('purchase_ticket_c.html', fligth=[])
+    return render_template('purchase_ticket_c.html', flight=[])
+
 
 @app.route('/payment_c', methods=['GET', 'POST'])
 def payment_c():
@@ -201,6 +208,7 @@ def payment_c():
         print(each['blog_post'])
     cursor.close()
     return render_template('home.html', username=username, posts=data1)
+
 
 @app.route('/track_my_spending_c', methods=['GET', 'POST'])
 def track_my_spending_c():

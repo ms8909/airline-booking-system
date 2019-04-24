@@ -31,8 +31,19 @@
 	<th>Flight Number</th>
 	<th>Airline Name</th>
 	<th>Source Airport</th>
+	<th>departure hour </th>
+	<th>departure min</th>
+	<th>departure day</th>
+	<th>departure month</th>
+	<th>departure year</th>
 	<th>Destination Airport</th>
-	<th>Number of Seats Available</th>
+	<th>arrival hour </th>
+	<th>arrival min</th>
+	<th>arrival day</th>
+	<th>arrival month</th>
+	<th>arrival year</th>
+	<th>Status</th>
+	<th>Number of Seats</th>
 	<th>Book Now</th>
 
 
@@ -40,10 +51,21 @@
 	<tr>
 		<td>{{line['flight_num']}}</td>
 		<td>{{line['airline_name']}}</td>
-		<td>{{line['arrival_airport']}}</td>
 		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
 		<td>{{line['status']}}</td>
-		<td>{{line['num_seats_available']}}</td>
+		<td>{{line['num_of_seats']}}</td>
+
 		<td><form action="/purchase_ticket_c" method="POST">
     <input type="text" name="flight_num" value={{line['flight_num']}}>
     <button type=”submit”> Book </button></form></td>
