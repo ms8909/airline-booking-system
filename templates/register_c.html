@@ -4,9 +4,9 @@
 <body>
 <form action="/registerAuth_c" method="POST">
 	<input type="text" name = "email" placeholder="Email" required/> </br>
+	<input type="password" name = "password" placeholder="password" required/></br>
 	<input type="text" name = "first_name" placeholder="First Name" required/> </br>
 	<input type="text" name = "last_name" placeholder="Last Name" required/> </br>
-
 	<input type="number" name = "building_number" placeholder="Building Number" required/> </br>
 	<input type="text" name = "street" placeholder="Street" required/> </br>
 	<input type="text" name = "city" placeholder="City" required/> </br>
@@ -19,8 +19,6 @@
 	<input type="text" name = "dob_d" placeholder="Day Of Birth" required/> </br>]
 	<input type="text" name = "dob_m" placeholder="Month Of Birth" required/> </br>]
 	<input type="text" name = "dob_y" placeholder="Year Of Birth" required/> </br>]
-
-	<input type="password" name = "password" placeholder="password" required/></br>
 	<input type="submit" value = Register />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>

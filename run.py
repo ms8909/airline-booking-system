@@ -35,7 +35,7 @@ def loginAuth_c():
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s and password = %s'
+	query = 'SELECT * FROM customer WHERE email = %s and password = %s'
 	cursor.execute(query, (username, password))
 	#stores the results in a variable
 	data = cursor.fetchone()
@@ -43,7 +43,7 @@ def loginAuth_c():
 	cursor.close()
 	error = None
 	if(data):
-		#creates a session for the the user
+		#creates a session for the user
 		#session is a built in
 		session['username'] = username
 		return redirect(url_for('home'))
@@ -57,6 +57,7 @@ def loginAuth_c():
 def registerAuth_c():
 	#grabs information from the forms
     email = request.form['email']
+    password = request. form['password']
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     building_number = request.form['building_number']
@@ -67,14 +68,11 @@ def registerAuth_c():
     passport_exp_d = request.form['passport_exp_d']
     passport_exp_m = request.form['passport_exp_m']
     passport_exp_y = request.form['passport_exp_y']
-
     passport_country = request.form['passport_country']
-
     dob_d = request.form['dob_d']
     dob_m = request.form['dob_m']
     dob_y = request.form['dob_y']
 
-    password = request.form['password']
 	#cursor used to send queries
     cursor = conn.cursor()
 	#executes query
@@ -89,8 +87,8 @@ def registerAuth_c():
         error = "This user already exists"
         return render_template('register_c.html', error = error)
     else:
-        ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-        cursor.execute(ins, (email, password, first_name, last_name, building_number, street, city, state, passport_num,passport_exp_d,passport_exp_m,passport_exp_y,passport_country,dob_d,dob_m,dob_y   ))
+        ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        cursor.execute(ins, (email, password, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
         conn.commit()
         cursor.close()
         return render_template('index.html')
@@ -107,7 +105,7 @@ def home():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    src_irport = request.form['src_irport']
+    src_airport = request.form['src_airport']
     des_airport = request.form['des_airport']
     deparature_time = request.form['deparature_time']
     round_trip = request.form['round_trip']
@@ -184,9 +182,6 @@ def track_my_spending_c():
         print(each['blog_post'])
     cursor.close()
     return render_template('home.html', username=username, posts=data1)
-
-
-
 
 
 
