@@ -4,8 +4,11 @@ import pymysql.cursors
 
 #Initialize the app from Flask
 app = Flask(__name__)
-
 #Configure MySQL
+app.config['ENV'] = 'development'
+app.config['DEBUG'] = True
+app.config['TESTING'] = True
+
 conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
@@ -13,6 +16,9 @@ conn = pymysql.connect(host='localhost',
                        db='airline',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
+
+
+
 
 
 #Define route for login
@@ -97,67 +103,92 @@ def registerAuth_c():
 @app.route('/')
 def home():
     # global search
-
-    return render_template('home.html')
-
-
+    return render_template('home.html', data=[{'temp':1}])
 
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    # global search
     src_airport = request.form['src_airport']
     des_airport = request.form['des_airport']
-    deparature_time = request.form['deparature_time']
-    round_trip = request.form['round_trip']
-    arrival_time = request.form['arrival_time']
+    departure_d = request.form['departure_d']
+    departure_m = request.form['departure_m']
+    departure_y = request.form['departure_y']
 
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
-    cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+    round_trip = request.form['round_trip']
+    arrival_d = request.form['arrival_d']
+    arrival_m = request.form['arrival_m']
+    arrival_y = request.form['arrival_y']
+
+	#cursor used to send queries
+    cursor = conn.cursor()
+    if round_trip=='No':
+
+    	#executes query
+        query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
+    	#stores the results in a variable
+        data = cursor.fetchone()
+    	#use fetchall() if you are expecting more than 1 data row
+        cursor.close()
+        error = None
+        if(data):
+            return render_template('home.html', error='', flighs=data)
+        else:
+    		#returns an error message to the html page
+            message = 'No Tickets available'
+            return render_template('home.html', error=message)
+    else:
+        #executes query
+        query = 'SELECT * FROM user WHERE username = %s and password = %s'
+        cursor.execute(query, (username, password))
+        #stores the results in a variable
+        data = cursor.fetchone()
+        #use fetchall() if you are expecting more than 1 data row
+        cursor.close()
+        error = None
+        if(data):
+            return render_template('home.html', error='', flighs=data)
+        else:
+            #returns an error message to the html page
+            message = 'No Tickets available'
+            return render_template('home.html', error=message, flighs=[])
+
+
 
 
 @app.route('/view_my_flights_c', methods=['GET', 'POST'])
 def view_my_flights_c():
-
     username = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
+    cursor = conn.cursor()
+
+
+    return render_template('view_my_flights_c.html', username=username, flights=[])
+
     cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+    return render_template('view_my_flights_c.html', username=username, flights=[])
 
 
 @app.route('/search_for_flights_c', methods=['GET', 'POST'])
 def search_for_flights_c():
-    username = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
-    cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+    return redirect(url_for('search'))
 
 @app.route('/purchase_ticket_c', methods=['GET', 'POST'])
 def purchase_ticket_c():
     username = session['username']
+    if username==None:
+        return render_template('login_c.html')
+
+    #get the flight number
+    flight_num = request.form['flight_num']
+
+    #save the flight number in the session
+    session['flight_num'] = flight_num
+
+    # get information of the flight and send to the payment page to ask for credit card information
     cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
-    cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+
+    return render_template('purchase_ticket_c.html', fligth=[])
 
 @app.route('/payment_c', methods=['GET', 'POST'])
 def payment_c():
@@ -197,4 +228,4 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-	app.run('127.0.0.1', 5000)
+    app.run('127.0.0.1', 5000)

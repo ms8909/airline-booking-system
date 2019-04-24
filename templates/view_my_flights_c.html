@@ -1,0 +1,45 @@
+<html>
+<head>
+</head>
+<body>
+</br></br>
+<a href="/view_my_flights_c">View My Flights</a>
+<a href="/search">Search For Flights</a>
+</br></br>
+
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+	<th>Flight Number</th>
+	<th>Airline Name</th>
+	<th>Source Airport</th>
+	<th>Destination Airport</th>
+	<th>Number of Seats Available</th>
+	<th>Book Now</th>
+
+
+{% for line in flights %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['status']}}</td>
+		<td>{{line['num_seats_available']}}</td>
+		<td><a href="/purchase_ticket_c">Logout</a></td>
+
+	</tr>
+{% endfor %}
+</table>
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>
