@@ -19,7 +19,9 @@ conn = pymysql.connect(host='localhost',
 
 
 
-
+@app.route('/login')
+def login():
+	return render_template('login.html')
 
 #Define route for login
 @app.route('/login_c')
@@ -52,7 +54,7 @@ def loginAuth_c():
 		#creates a session for the user
 		#session is a built in
 		session['username'] = username
-		return redirect(url_for('home'))
+		return redirect(url_for('home_customer'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
@@ -97,14 +99,74 @@ def registerAuth_c():
         cursor.execute(ins, (email, password, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
         conn.commit()
         cursor.close()
-        return render_template('index.html')
+        return render_template('login_c.html')
 
 
 @app.route('/')
 def home():
     # global search
-    return render_template('home.html', data=[{'temp':1}])
+    return render_template('home.html',data=[{'temp':1}])
 
+
+@app.route('/home_customer')
+def home_customer():
+    # global search
+    username= session['username']
+    return render_template('home_c.html',username=username, data=[{'temp':1}])
+
+@app.route('/search_c', methods=['GET', 'POST'])
+def search_c():
+    # global search
+    src_airport = request.form['src_airport']
+    des_airport = request.form['des_airport']
+    departure_d = request.form['departure_d']
+    departure_m = request.form['departure_m']
+    departure_y = request.form['departure_y']
+
+    round_trip = request.form['round_trip']
+    arrival_d = request.form['arrival_d']
+    arrival_m = request.form['arrival_m']
+    arrival_y = request.form['arrival_y']
+
+	#cursor used to send queries
+    cursor = conn.cursor()
+    if round_trip=='No':
+
+    	#executes query
+        #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+        #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
+        #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
+
+
+        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y, ))
+    	#stores the results in a variable
+        data = cursor.fetchall()
+    	#use fetchall() if you are expecting more than 1 data row
+        cursor.close()
+        error = None
+        print(data)
+        if(data):
+            return render_template('home_c.html', error='', flights=data)
+        else:
+    		#returns an error message to the html page
+            message = 'No Tickets available'
+            return render_template('home_c.html', error=message)
+    else:
+        #executes query
+        query = 'SELECT * FROM user WHERE username = %s and password = %s'
+        cursor.execute(query, (username, password))
+        #stores the results in a variable
+        data = cursor.fetchone()
+        #use fetchall() if you are expecting more than 1 data row
+        cursor.close()
+        error = None
+        if(data):
+            return render_template('home_c.html', error='', flighs=data)
+        else:
+            #returns an error message to the html page
+            message = 'No Tickets available'
+            return render_template('home_c.html', error=message, flighs=[])
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -162,7 +224,6 @@ def search():
 
 
 
-
 @app.route('/view_my_flights_c', methods=['GET', 'POST'])
 def view_my_flights_c():
     username = session['username']
@@ -186,28 +247,78 @@ def purchase_ticket_c():
         return render_template('login_c.html')
 
     #get the flight number
-    flight_num = request.form['flight_num']
+    flight_num_dep = request.form['flight_num_dep']
 
-    #save the flight number in the session
-    session['flight_num'] = flight_num
+    round = request.form['round_trip']
+    if round=='yes':
+        flight_num_arr = request.form['flight_num_arrival']
 
-    # get information of the flight and send to the payment page to ask for credit card information
-    cursor = conn.cursor();
+        query = 'SELECT * FROM user WHERE username = %s and password = %s'
+        cursor.execute(query, (username, password))
+        #stores the results in a variable
+        data = cursor.fetchone()
+        #use fetchall() if you are expecting more than 1 data row
+        cursor.close()
 
-    return render_template('purchase_ticket_c.html', flight=[])
+        #save the flight number in the session
+        session['flight_num_dep'] = flight_num_dep
+        session['round_trip'] = round
+        session['flight_num_arr'] = flight_num_arr
+        # get information of the flight and send to the payment page to ask for credit card information
+        cursor = conn.cursor();
+        return render_template('purchase_ticket_c.html', flight=[])
+
+    else:
+
+        query = 'SELECT * FROM user WHERE username = %s and password = %s'
+        cursor.execute(query, (username, password))
+        #stores the results in a variable
+        data = cursor.fetchone()
+        #use fetchall() if you are expecting more than 1 data row
+        cursor.close()
+
+        #save the flight number in the session
+        session['flight_num_dep'] = flight_num_dep
+        session['round_trip'] = 'no'
+        session['flight_num_arr'] = 'None'
+        # get information of the flight and send to the payment page to ask for credit card information
+        cursor = conn.cursor();
+        return render_template('purchase_ticket_c.html', flight=[])
 
 
 @app.route('/payment_c', methods=['GET', 'POST'])
 def payment_c():
     username = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
-    cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+    if not username:
+        print('Plese login first to pay')
+        return render_template('login.html')
+
+    #get credit card information from the form
+
+
+    #get details of the flight saved in the session
+    flight_num_dep= session['flight_num_dep']
+    round= session['round_trip']
+    flight_num_arr= session['flight_num_arr']
+
+    # use information to process the payment and purchase the flight
+    if round=='no':
+        cursor = conn.cursor();
+        query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+        cursor.execute(query, (username))
+        data1 = cursor.fetchall()
+
+        cursor.close()
+
+        return render_template('view_my_flights.html', username=username, posts=data1)
+    else:
+        cursor = conn.cursor();
+        query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+        cursor.execute(query, (username))
+        data1 = cursor.fetchall()
+
+        cursor.close()
+        return render_template('home.html', username=username, posts=data1)
 
 
 @app.route('/track_my_spending_c', methods=['GET', 'POST'])
