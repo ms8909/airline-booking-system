@@ -18,26 +18,25 @@
 		<th>Flight Number</th>
 		<th>Airline Name</th>
 		<th>Source Airport</th>
-		<th>departure hour </th>
-		<th>departure min</th>
-		<th>departure day</th>
-		<th>departure month</th>
-		<th>departure year</th>
+		<th>Departure hour </th>
+		<th>Departure min</th>
+		<th>Departure day</th>
+		<th>Departure month</th>
+		<th>Departure year</th>
 		<th>Destination Airport</th>
-		<th>arrival hour </th>
-		<th>arrival min</th>
-		<th>arrival day</th>
-		<th>arrival month</th>
-		<th>arrival year</th>
-		<th>Status</th>
-		<th>Number of Seats</th>
+		<th>Arrival hour</th>
+		<th>Arrival min</th>
+		<th>Arrival day</th>
+		<th>Arrival month</th>
+		<th>Arrival year</th>
+		<th>Price</th>
 		<th>Book Now</th>
 
 
-	{% for line in flight %}
+	{% for line in flight_dep %}
 		<tr>
 			<td>{{line['flight_num']}}</td>
-			<td>{{line['airline_name']}}</td>
+			<td>{{line['flight.airline_name']}}</td>
 			<td>{{line['departure_airport']}}</td>
 			<td>{{line['departure_hour']}}</td>
 			<td>{{line['departure_min']}}</td>
@@ -50,22 +49,41 @@
 			<td>{{line['arrival_day']}}</td>
 			<td>{{line['arrival_month']}}</td>
 			<td>{{line['arrival_year']}}</td>
-			<td>{{line['status']}}</td>
-			<td>{{line['num_of_seats']}}</td>
+			<td>{{line['base_price']}}</td>
+		</tr>
+{% endfor %}
 
+{% for line in flight_arr %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['light.airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['base_price']}}</td>
 	</tr>
 {% endfor %}
+
 </table>
 
 <form action="/payment_c" method="POST">
 	<h1>Please Input your credit card details</h1>
-	<input type="text" name = "name" placeholder="Name on Credit Card" required/> </br>
+	<input type="text" name = "card_name" placeholder="Name on Credit Card" required/> </br>
 	<input type="text" name = "card_number" placeholder="Credit Card Number" required/> </br>
 	<input type="text" name = "card_type" placeholder="Card Type" required/> </br>
 	<input type="text" name = "security_code" placeholder="Security Code" required/> </br>
-	<input type="text" name = "exp_month" placeholder="Expiry Month" required/> </br>
-	<input type="text" name = "exp_year" placeholder="Expiry Year" required/> </br>
-	<input type="submit" value = Search />
+	<input type="text" name = "exp_month" placeholder="Expiration Month" required/> </br>
+	<input type="text" name = "exp_year" placeholder="Expiration Year" required/> </br>
+	<input type="submit" value = Enter />
 </form>
 
 
