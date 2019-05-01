@@ -253,11 +253,16 @@ def purchase_ticket_c():
     if round=='yes':
         flight_num_arr = request.form['flight_num_arrival']
 
-        query = 'SELECT * FROM user WHERE username = %s and password = %s'
-        cursor.execute(query, (username, password))
-        #stores the results in a variable
-        data = cursor.fetchone()
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s'
+        cursor.execute(query, (flight_num_dep))
+
         #use fetchall() if you are expecting more than 1 data row
+        dep_data = cursor.fetchone()
+
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s'
+        cursor.execute(query, (flight_num_arr))
+        #stores the results in a variable
+        arr_data = cursor.fetchone()
         cursor.close()
 
         #save the flight number in the session
@@ -266,15 +271,15 @@ def purchase_ticket_c():
         session['flight_num_arr'] = flight_num_arr
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
-        return render_template('purchase_ticket_c.html', flight_dep=[], flight_arr=[])
+        return render_template('purchase_ticket_c.html', flight_dep=dep_data, flight_arr=arr_data)
 
     else:
-
-        query = 'SELECT * FROM user WHERE username = %s and password = %s'
-        cursor.execute(query, (username, password))
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s'
+        cursor.execute(query, (flight_num_dep))
         #stores the results in a variable
-        data = cursor.fetchone()
+
         #use fetchall() if you are expecting more than 1 data row
+        dep_data = cursor.fetchone()
         cursor.close()
 
         #save the flight number in the session
@@ -283,18 +288,23 @@ def purchase_ticket_c():
         session['flight_num_arr'] = 'None'
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
-        return render_template('purchase_ticket_c.html', flight_dep=[], flight_arr=[])
+        return render_template('purchase_ticket_c.html', flight_dep=dep_data, flight_arr=[])
 
 
 @app.route('/payment_c', methods=['GET', 'POST'])
 def payment_c():
     username = session['username']
     if not username:
-        print('Plese login first to pay')
+        print('Please login first to pay')
         return render_template('login.html')
 
     #get credit card information from the form
-
+    name = request.form['card_name']
+    card_number = request.form['card_number']
+    card_type = request.form['card_type']
+    security_code = request.form['security_code']
+    exp_month = request.form['exp_month']
+    exp_year = request.form['exp_year']
 
     #get details of the flight saved in the session
     flight_num_dep= session['flight_num_dep']
@@ -306,8 +316,12 @@ def payment_c():
     # use information to process the payment and purchase the flight
     if round=='no':
         cursor = conn.cursor();
-        query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-        cursor.execute(query, (username))
+        query1 = 'insert into ticket(ticket_id, flight_num_dep, airline_name)''
+        query2 = 'insert into buys(ticket_id, username)'
+
+
+        query3 = 'insert into payment(%s, %s, %s, %s, %s, %s, %s, purchase_hour, purchase_min, purchase_day, purchase_month, purchase_year)'
+        cursor.execute(query, (payment_num, card_type, card_number, name, security_code, exp_month, exp_year))
         data1 = cursor.fetchall()
 
         cursor.close()
