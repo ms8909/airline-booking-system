@@ -301,6 +301,8 @@ def payment_c():
     round= session['round_trip']
     flight_num_arr= session['flight_num_arr']
 
+    #card information
+
     # use information to process the payment and purchase the flight
     if round=='no':
         cursor = conn.cursor();

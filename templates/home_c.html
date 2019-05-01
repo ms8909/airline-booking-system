@@ -19,7 +19,6 @@
 	<input type="text" name = "arrival_d" placeholder="Arrival Day" required/> </br>
 	<input type="text" name = "arrival_m" placeholder="Arrival Month" required/> </br>
 	<input type="text" name = "arrival_y" placeholder="Arrival Year" required/> </br>
-	<input type="checkbox" name="match-with-pairs"/> Temp</br>
 	<input type="submit" value = Search />
 </form>
 
@@ -48,8 +47,8 @@
 	<th>Number of Seats</th>
 	<th>Book Now</th>
 
-
-{% for line in flights %}
+<form action="/purchase_ticket_c" method="POST">
+{% for line in flights_departure %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
 		<td>{{line['airline_name']}}</td>
@@ -68,13 +67,37 @@
 		<td>{{line['status']}}</td>
 		<td>{{line['num_of_seats']}}</td>
 
-		<td><form action="/purchase_ticket_c" method="POST">
-    <input type="text" name="flight_num" value={{line['flight_num']}}>
-    <button type=”submit”> Book </button></form></td>
+		<td>
+    <input type="text" name="flight_num_dep" value={{line['flight_num']}}>
+    </td>
 	</tr>
 {% endfor %}
 
+{% for line in flights_arrival %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['status']}}</td>
+		<td>{{line['num_of_seats']}}</td>
 
+		<td>
+    <input type="text" name="flight_num_dep" value={{line['flight_num']}}>
+    </td>
+	</tr>
+{% endfor %}
+<button type=”submit”> Book </button></form>
 </table>
 
 <a href="/logout_c">Logout</a>
