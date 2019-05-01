@@ -266,7 +266,7 @@ def purchase_ticket_c():
         session['flight_num_arr'] = flight_num_arr
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
-        return render_template('purchase_ticket_c.html', flight=[])
+        return render_template('purchase_ticket_c.html', flight_dep=[], flight_arr=[])
 
     else:
 
@@ -283,7 +283,7 @@ def purchase_ticket_c():
         session['flight_num_arr'] = 'None'
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
-        return render_template('purchase_ticket_c.html', flight=[])
+        return render_template('purchase_ticket_c.html', flight_dep=[], flight_arr=[])
 
 
 @app.route('/payment_c', methods=['GET', 'POST'])
