@@ -318,7 +318,7 @@ def payment_c():
         query2 = 'insert into buys(ticket_id, username)'
 
 
-        query3 = 'insert into payment(%s, %s, %s, %s, %s, %s, %s, purchase_hour, purchase_min, purchase_day, purchase_month, purchase_year)'
+        query3 = 'insert into payment(%s, %s, %s, %s, %s, %s, %s)'
         cursor.execute(query, (payment_num, card_type, card_number, name, security_code, exp_month, exp_year))
         data1 = cursor.fetchall()
 
