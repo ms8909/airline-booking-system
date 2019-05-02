@@ -122,7 +122,6 @@ def search_c():
     departure_d = request.form['departure_d']
     departure_m = request.form['departure_m']
     departure_y = request.form['departure_y']
-
     round_trip = request.form['round_trip']
     arrival_d = request.form['arrival_d']
     arrival_m = request.form['arrival_m']
@@ -139,7 +138,7 @@ def search_c():
         #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
 
 
-        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y, ))
+        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
     	#stores the results in a variable
         data = cursor.fetchall()
     	#use fetchall() if you are expecting more than 1 data row
@@ -193,7 +192,7 @@ def search():
         #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
 
 
-        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y, ))
+        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
     	#stores the results in a variable
         data = cursor.fetchall()
     	#use fetchall() if you are expecting more than 1 data row
@@ -311,10 +310,12 @@ def payment_c():
     round= session['round_trip']
     flight_num_arr= session['flight_num_arr']
 
+    #card information
+
     # use information to process the payment and purchase the flight
     if round=='no':
         cursor = conn.cursor();
-        query1 = 'insert into ticket(ticket_id, flight_num_dep, airline_name)''
+        query1 = 'insert into ticket(ticket_id, flight_num_dep, airline_name)'
         query2 = 'insert into buys(ticket_id, username)'
 
 
