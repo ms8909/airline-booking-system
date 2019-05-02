@@ -68,11 +68,12 @@
 		<td>{{line['num_of_seats']}}</td>
 
 		<td>
-    <input type="text" name="flight_num_dep" value={{line['flight_num']}}>
+    <input type="checkbox" name="flight_num_dep" value={{line['flight_num']}}>
+		<input type="text" name="airline_name_dep" value="{{line['airline_name']}}">
     </td>
 	</tr>
 {% endfor %}
-
+</br>
 {% for line in flights_arrival %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
@@ -93,14 +94,15 @@
 		<td>{{line['num_of_seats']}}</td>
 
 		<td>
-    <input type="text" name="flight_num_dep" value={{line['flight_num']}}>
+    <input type="checkbox" name="flight_num_arr" value={{line['flight_num']}}>
+		<input type="text" name="airline_name_arr" value="{{line['airline_name']}}">
     </td>
 	</tr>
 {% endfor %}
 <button type=”submit”> Book </button></form>
 </table>
 
-<a href="/logout_c">Logout</a>
+<a href="/logout">Logout</a>
 
 </body>
 
