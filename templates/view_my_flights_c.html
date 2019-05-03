@@ -4,7 +4,8 @@
 <body>
 </br></br>
 <a href="/view_my_flights_c">View My Flights</a>
-<a href="/search">Search For Flights</a>
+<a href="/home_c">Search For Flights</a>
+<a href="/track_my_spending_c">Track My Spending</a>
 </br></br>
 
 
@@ -16,22 +17,40 @@
 
 <table>
 	<th>Flight Number</th>
+	<th>Status</th>
 	<th>Airline Name</th>
 	<th>Source Airport</th>
+	<th>Departure Hour</th>
+	<th>Departure Minute</th>
+	<th>Departure Day</th>
+	<th>Departure Month</th>
+	<th>Departure Year</th>
 	<th>Destination Airport</th>
-	<th>Number of Seats Available</th>
-	<th>Book Now</th>
-
+	<th>Arrival Hour</th>
+	<th>Arrival Minute</th>
+	<th>Arrival Day</th>
+	<th>Arrival Month</th>
+	<th>Arrival Year</th>
+	<th>Base Price</th>
 
 {% for line in flights %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
-		<td>{{line['airline_name']}}</td>
-		<td>{{line['arrival_airport']}}</td>
-		<td>{{line['departure_airport']}}</td>
 		<td>{{line['status']}}</td>
-		<td>{{line['num_seats_available']}}</td>
-		<td><a href="/purchase_ticket_c">Logout</a></td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['base_price']}}</td>
 
 	</tr>
 {% endfor %}

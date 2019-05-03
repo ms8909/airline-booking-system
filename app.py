@@ -108,8 +108,8 @@ def home():
     return render_template('home.html',data=[{'temp':1}])
 
 
-@app.route('/home_customer')
-def home_customer():
+@app.route('/home_c')
+def home_c():
     # global search
     username= session['username']
     return render_template('home_c.html',username=username, data=[{'temp':1}])
@@ -187,7 +187,7 @@ def search_c():
 
     	#executes query
         #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year %s'
+        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
         #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
         #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
 
@@ -243,11 +243,13 @@ def view_my_flights_c():
     username = session['username']
     cursor = conn.cursor()
 
+    query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM buys natural join ticket natural join flight where customer_email = %s'
 
-    return render_template('view_my_flights_c.html', username=username, flights=[])
-
+    cursor.execute(query, (username))
+    data = cursor.fetchall()
     cursor.close()
-    return render_template('view_my_flights_c.html', username=username, flights=[])
+
+    return render_template('view_my_flights_c.html', username=username, flights=data)
 
 
 @app.route('/search_for_flights_c', methods=['GET', 'POST'])
@@ -327,7 +329,7 @@ def purchase_ticket_c():
         cursor = conn.cursor();
         price=dep_data['base_price']
         #session['price'] = price
-        return render_template('purchase_ticket_c.html', flight_dep=dep_data, flight_arr=[], price=price)
+        return render_template('purchase_ticket_c.html', flight_dep=[dep_data], flight_arr=[], price=price)
 
 
 @app.route('/payment_c', methods=['GET', 'POST'])
@@ -358,10 +360,7 @@ def payment_c():
     # use information to process the payment and purchase the flight
     if round=='no':
         cursor = conn.cursor();
-<<<<<<< HEAD
-        query1 = 'insert into ticket(ticket_id, flight_num_dep, airline_name)'
-        query2 = 'insert into buys(ticket_id, username)'
-=======
+
         from random import randint
         ticket_number= str(randint(10000, 99999))
         payment_number = str(randint(10000000, 99999999))
@@ -375,26 +374,20 @@ def payment_c():
 
         query2 = 'insert into buys(ticket_id, customer_email) values (%s, %s)'
         cursor.execute(query2, (ticket_number, username))
->>>>>>> e738a5b2c4bb883a9ebbb50bd2c424b4302f4408
+
 
         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
 
-<<<<<<< HEAD
-        query3 = 'insert into payment(%s, %s, %s, %s, %s, %s, %s)'
-        cursor.execute(query, (payment_num, card_type, card_number, name, security_code, exp_month, exp_year))
-        data1 = cursor.fetchall()
-=======
+
         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
         cursor.execute(query4, (ticket_number, payment_number))
->>>>>>> e738a5b2c4bb883a9ebbb50bd2c424b4302f4408
 
         conn.commit()
         cursor.close()
 
+        return redirect(url_for('view_my_flights_c'))
 
-
-        return render_template('view_my_flights.html')
     else:
         cursor = conn.cursor();
         from random import randint
@@ -424,20 +417,41 @@ def payment_c():
         cursor.execute(query4, (ticket_number, payment_number))
 
         conn.commit()
-        return render_template('home.html')
+        return redirect(url_for('view_my_flights_c'))
+
 
 
 @app.route('/track_my_spending_c', methods=['GET', 'POST'])
 def track_my_spending_c():
+
+    import datetime
+    x = datetime.datetime.now()
+    current_year = x.year
+    last_year = x.year - 1
+    current_month = x.strftime("%B")
+
     username = session['username']
     cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchall()
-    for each in data1:
-        print(each['blog_post'])
+
+    query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s'
+
+    cursor.execute(query, (username, last_year, current_year))
+    data1 = cursor.fetchone()['price']
+    print("Total price:", data1)
+
+
+
+    query1 = 'SELECT sum(sold_price) as sum, purchase_month, purchase_year from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s group by purchase_month, purchase_year'
+    cursor.execute(query1, (username, last_year, current_year))
+    data = cursor.fetchone()
+    #print("Printing:", data)
+    values = data['sum']
+    labels = data['purchase_month']
+    print("Printing values:", values)
+    print("Printing labels:", labels)
+
     cursor.close()
-    return render_template('home.html', username=username, posts=data1)
+    return render_template('track_my_spending_c.html', username=username, price=data1, values=values, labels=labels)
 
 
 
