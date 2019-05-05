@@ -1,9 +1,13 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
+import matplotlib.pyplot as plt
+import numpy as np
+import os
 
 #Initialize the app from Flask
 app = Flask(__name__)
+
 #Configure MySQL
 app.config['ENV'] = 'development'
 app.config['DEBUG'] = True
@@ -54,7 +58,7 @@ def loginAuth_c():
 		#creates a session for the user
 		#session is a built in
 		session['username'] = username
-		return redirect(url_for('home_customer'))
+		return redirect(url_for('home_c'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
@@ -266,16 +270,16 @@ def purchase_ticket_c():
     #get the flight number
     flight_num_dep = request.form['flight_num_dep']
     airline_name_dep = request.form["airline_name_dep"]
-    print('airline_name_dep', airline_name_dep)
-    print("json",request.form['flight_num_dep'] )
-    print(flight_num_dep)
+    #print('airline_name_dep', airline_name_dep)
+    #print("json",request.form['flight_num_dep'] )
+    #print(flight_num_dep)
 
     round='no'
     try:
         flight_num_arr = request.form['flight_num_arr']
         airline_name_arr = request.form["airline_name_arr"]
         round='yes'
-        print(flight_num_arr)
+        #print(flight_num_arr)
     except:
         round='no'
 
@@ -430,28 +434,52 @@ def track_my_spending_c():
     last_year = x.year - 1
     current_month = x.strftime("%B")
 
+
     username = session['username']
+
+    # start_month = request.form['start_month']
+    # start_year = request.form['start_year']
+    # end_month = request.form['end_month']
+    # end_year = request.form['end_year']
+
     cursor = conn.cursor();
 
     query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s'
-
     cursor.execute(query, (username, last_year, current_year))
     data1 = cursor.fetchone()['price']
     print("Total price:", data1)
 
 
-
     query1 = 'SELECT sum(sold_price) as sum, purchase_month, purchase_year from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s group by purchase_month, purchase_year'
     cursor.execute(query1, (username, last_year, current_year))
-    data = cursor.fetchone()
+    data = cursor.fetchall()
     #print("Printing:", data)
-    values = data['sum']
-    labels = data['purchase_month']
-    print("Printing values:", values)
-    print("Printing labels:", labels)
+    #values = data['sum']
+    print("data:", data)
+    l = [0]*len(data)  #labels as January2019 for example
+    p = [0]*len(data)  #total amount spend per monthYear
+    amount = [0]*len(data)
+    for i in range(len(data)):
+        l[i] = (data[i]['purchase_month'] + data[i]['purchase_year'])
+        p[i] = data[i]['sum']
+
+    for i in range(len(data)):
+        amount[i] = p[i]
+
+    print(amount)
+
+    labels = ["January","February","March","April","May","June","July","August"]
+    price = [10,9,8,7,6,4,7,8]
+
+    #fig, ax = plt.subplots()
+    plt.bar(l, amount)
+    # plt.savefig('static/images/plot0.png')
+    # strFile = 'static/images/figure.png'
+    plt.savefig('static/images/figure3.png')
+    plt.close()
 
     cursor.close()
-    return render_template('track_my_spending_c.html', username=username, price=data1, values=values, labels=labels)
+    return render_template('track_my_spending_c.html', username=username, price=data1, values=[], labels=[], name = 'My Spendings', url = 'static/images/figure3.png')
 
 
 
