@@ -1,0 +1,112 @@
+<html>
+<head>
+</head>
+<body>
+</br></br>
+<a href="/view_my_flights_a">View My Flights</a>
+<a href="/home_a">Search For Flights</a>
+<a href="/view_my_commissions_a">View my Commissions</a>
+<a href="/view_top_customers_a">View Top Customers</a>
+
+
+</br></br>
+<form action="/search_a" method="POST">
+	<h1>Welcome {{username}}</h1>
+	<input type="text" name = "src_airport" placeholder="Source Airport" required/> </br>
+	<input type="text" name = "des_airport" placeholder="Destination Airport" required/> </br>
+	<input type="text" name = "departure_d" placeholder="Departure Day" required/> </br>
+	<input type="text" name = "departure_m" placeholder="Departure Month" required/> </br>
+	<input type="text" name = "departure_y" placeholder="Departure Year" required/> </br>
+	<input type="text" name = "round_trip" placeholder="Round Trip" required/> </br>
+	<input type="text" name = "arrival_d" placeholder="Arrival Day" required/> </br>
+	<input type="text" name = "arrival_m" placeholder="Arrival Month" required/> </br>
+	<input type="text" name = "arrival_y" placeholder="Arrival Year" required/> </br>
+	<input type="submit" value = Search />
+</form>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+	<th>Flight Number</th>
+	<th>Airline Name</th>
+	<th>Source Airport</th>
+	<th>departure hour </th>
+	<th>departure min</th>
+	<th>departure day</th>
+	<th>departure month</th>
+	<th>departure year</th>
+	<th>Destination Airport</th>
+	<th>arrival hour </th>
+	<th>arrival min</th>
+	<th>arrival day</th>
+	<th>arrival month</th>
+	<th>arrival year</th>
+	<th>Status</th>
+	<th>Number of Seats</th>
+	<th>Book Now</th>
+
+<form action="/purchase_ticket_a" method="POST">
+{% for line in flights_departure %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['status']}}</td>
+		<td>{{line['num_of_seats']}}</td>
+
+		<td>
+    <input type="checkbox" name="flight_num_dep" value={{line['flight_num']}}>
+		<input type="text" name="airline_name_dep" value="{{line['airline_name']}}">
+    </td>
+	</tr>
+{% endfor %}
+</br>
+{% for line in flights_arrival %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['status']}}</td>
+		<td>{{line['num_of_seats']}}</td>
+
+		<td>
+    <input type="checkbox" name="flight_num_arr" value={{line['flight_num']}}>
+		<input type="text" name="airline_name_arr" value="{{line['airline_name']}}">
+    </td>
+	</tr>
+{% endfor %}
+<button type=”submit”> Book </button></form>
+</table>
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>

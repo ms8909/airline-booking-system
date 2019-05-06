@@ -1,0 +1,117 @@
+<html>
+<head>
+</head>
+<body>
+</br></br>
+<a href="/view_my_flights_a">View My Flights</a>
+<a href="/home_a">Search For Flights</a>
+<a href="/view_my_commissions_a">View my Commissions</a>
+<a href="/view_top_customers_a">View Top Customers</a>
+</br></br>
+
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+		<th>Flight Number</th>
+		<th>Airline Name</th>
+		<th>Source Airport</th>
+		<th>Departure hour </th>
+		<th>Departure min</th>
+		<th>Departure day</th>
+		<th>Departure month</th>
+		<th>Departure year</th>
+		<th>Destination Airport</th>
+		<th>Arrival hour</th>
+		<th>Arrival min</th>
+		<th>Arrival day</th>
+		<th>Arrival month</th>
+		<th>Arrival year</th>
+		<th>Price</th>
+
+
+	{% for line in flight_dep %}
+		<tr>
+			<td>{{line['flight_num']}}</td>
+			<td>{{line['airline_name']}}</td>
+			<td>{{line['departure_airport']}}</td>
+			<td>{{line['departure_hour']}}</td>
+			<td>{{line['departure_min']}}</td>
+			<td>{{line['departure_day']}}</td>
+			<td>{{line['departure_month']}}</td>
+			<td>{{line['departure_year']}}</td>
+			<td>{{line['arrival_airport']}}</td>
+			<td>{{line['arrival_hour']}}</td>
+			<td>{{line['arrival_min']}}</td>
+			<td>{{line['arrival_day']}}</td>
+			<td>{{line['arrival_month']}}</td>
+			<td>{{line['arrival_year']}}</td>
+			<td>{{line['base_price']}}</td>
+		</tr>
+{% endfor %}
+
+{% for line in flight_arr %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['departure_airport']}}</td>
+		<td>{{line['departure_hour']}}</td>
+		<td>{{line['departure_min']}}</td>
+		<td>{{line['departure_day']}}</td>
+		<td>{{line['departure_month']}}</td>
+		<td>{{line['departure_year']}}</td>
+		<td>{{line['arrival_airport']}}</td>
+		<td>{{line['arrival_hour']}}</td>
+		<td>{{line['arrival_min']}}</td>
+		<td>{{line['arrival_day']}}</td>
+		<td>{{line['arrival_month']}}</td>
+		<td>{{line['arrival_year']}}</td>
+		<td>{{line['base_price']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+
+</br>
+<h>The Total price is {{price_a}}</h>
+</br>
+
+<form action="/payment_a" method="POST">
+	<h1>Please Input your credit card details</h1>
+	<input type="text" name = "card_name" placeholder="Name on Credit Card" required/> </br>
+	<input type="text" name = "card_number" placeholder="Credit Card Number" required/> </br>
+	<input type="text" name = "card_type" placeholder="Card Type" required/> </br>
+	<input type="text" name = "security_code" placeholder="Security Code" required/> </br>
+	<input type="text" name = "exp_month" placeholder="Expiration Month" required/> </br>
+	<input type="text" name = "exp_year" placeholder="Expiration Year" required/> </br>
+</br>
+<input type="text" name = "email" placeholder="Customer Email" required/> </br>
+<input type="text" name = "first_name" placeholder="First Name" required/> </br>
+<input type="text" name = "last_name" placeholder="Last Name" required/> </br>
+<input type="number" name = "building_number" placeholder="Building Number" required/> </br>
+<input type="text" name = "street" placeholder="Street" required/> </br>
+<input type="text" name = "city" placeholder="City" required/> </br>
+<input type="text" name = "state" placeholder="State" required/> </br>
+<input type="text" name = "passport_num" placeholder="Passport Number" required/> </br>
+<input type="text" name = "passport_exp_d" placeholder="Passport Expiration Day" required/> </br>
+<input type="text" name = "passport_exp_m" placeholder="Passport Expiration Month" required/> </br>
+<input type="text" name = "passport_exp_y" placeholder="Passport Expiration Year" required/> </br>
+<input type="text" name = "passport_country" placeholder="Passport Country" required/> </br>
+<input type="text" name = "dob_d" placeholder="Day Of Birth" required/> </br>]
+<input type="text" name = "dob_m" placeholder="Month Of Birth" required/> </br>]
+<input type="text" name = "dob_y" placeholder="Year Of Birth" required/> </br>]
+
+	<input type="submit" value = Purchase />
+</form>
+
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>
