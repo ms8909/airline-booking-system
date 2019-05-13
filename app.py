@@ -821,12 +821,25 @@ def view_reports():
 
     cursor = conn.cursor();
 
-    query = 'SELECT count(ticket_id) as count FROM ticket natural join paid natural join payment where payment_time between %s and %s and airline_name =%s'
+    query = "SELECT count(ticket_id) as count, CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) ) AS thedate FROM ticket natural join paid natural join payment where payment_time between %s and %s and airline_name = %s group by CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) )"
     cursor.execute(query, (start_date,end_date, airline_name['airline_name']))
-    count = cursor.fetchone()['count']
+    data = cursor.fetchall()
+
+    l=[]    #labels
+    p=[]    #price
+    for k in data:
+        l.append(k['thedate'])
+        p.append(float(k['count']))
+
+    count = 0
+    for i in range(len(p)):
+        count += int(p[i])
+
+    print("labels:", l)
+    print("price:", p)
 
     cursor.close()
-    return render_template('view_reports.html', count=count)
+    return render_template('view_reports.html', values=p, labels = l, count = count)
 
 
 @app.route('/comparision_of_revenue', methods=['GET', 'POST'])
