@@ -346,14 +346,12 @@ def payment_a():
 def view_my_commissions_a():
 	email = session['email']
 	booking_agent_id = session['booking_agent_id']
-
 	cursor = conn.cursor()
 	try:
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
-
-        start_date= start_date+' 00:00:00'
-        end_date= end_date+' 00:00:00'
+		start_date = request.form['start_date']
+		end_date = request.form['end_date']
+		start_date= start_date+' 00:00:00'
+		end_date= end_date+' 00:00:00'
 
 		#total amount of commissions last 30 days
 		query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
