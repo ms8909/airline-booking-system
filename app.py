@@ -432,26 +432,37 @@ def payment_c():
 @app.route('/track_my_spending_c', methods=['GET', 'POST'])
 def track_my_spending_c():
     username = session['username']
-
-    # start_month = request.form['start_month']
-    # start_year = request.form['start_year']
-    # end_month = request.form['end_month']
-    # end_year = request.form['end_year']
-
     cursor = conn.cursor();
 
-    query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 12 month)'
-    cursor.execute(query, (username))
-    data1 = cursor.fetchone()['price']
-    print("Total price:", data1)
+    try:
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+
+        start_date= start_date+' 00:00:00'
+        end_date= end_date+' 00:00:00'
+
+        #need to change this queries
+        query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and payment_time >= %s and payment_time<=  %s'
+        cursor.execute(query, (username, start_date, end_date))
+        data1 = cursor.fetchone()['price']
+        print("Total price:", data1)
 
 
-    query1 = "SELECT sum(sold_price) as sum, CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) ) AS thedate from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 6 month) group by CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) )"
-    cursor.execute(query1, (username))
-    data = cursor.fetchall()
-    #print("Printing:", data)
-    #values = data['sum']
-    print("data:", data)
+        query1 = "SELECT sum(sold_price) as sum, CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) ) AS thedate from buys natural join paid natural join payment where customer_email = %s and payment_time >= %s and payment_time<=  %s group by CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) )"
+        cursor.execute(query1, (username, start_date, end_date))
+        data = cursor.fetchall()
+    except:
+        query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 12 month)'
+        cursor.execute(query, (username))
+        data1 = cursor.fetchone()['price']
+        print("Total price:", data1)
+
+
+        query1 = "SELECT sum(sold_price) as sum, CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) ) AS thedate from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 6 month) group by CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) )"
+        cursor.execute(query1, (username))
+        data = cursor.fetchall()
+
+
 
     l=[]    #labels
     p=[]    #price

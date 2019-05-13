@@ -29,21 +29,19 @@
 	Total Number of Tickets Sold for the last 30 days is {{count}}
 </h2>
 
-<!--
+
 </br></br>
 <h3>
-	Enter the number of months you want to see the data for:
+	Enter the Date range you want to see the data for:
 </h3>
 <form action="/view_my_commissions_a" method="POST">
-	<input type="number" name = "total" placeholder="Total Commission Month Range" required/> </br>
-	<input type="number" name = "average" placeholder="Average Commission Month Range" required/> </br>
-	<input type="number" name = "tickets" placeholder="Number of Tickets Sold Month Range" required/> </br>
-	<input type="submit" value = Enter />
+	<input type="text" name = "start_date" placeholder="Start Date in yyyy-mm-dd" required/> </br>
+	<input type="text" name = "end_date" placeholder="End Date in yyyy-mm-dd" required/></br>
+	<input type="submit" value = Search />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
--->
 <a href="/logout">Logout</a>
 
 </body>

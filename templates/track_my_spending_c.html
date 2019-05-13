@@ -56,6 +56,14 @@
 <h3>
 	Please specify the range for displaying the total amount and the Bar Chart
 </h3>
+<form action="/track_my_spending_c" method="POST">
+	<input type="text" name = "start_date" placeholder="Start Date in yyyy-mm-dd" required/> </br>
+	<input type="text" name = "end_date" placeholder="End Date in yyyy-mm-dd" required/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
 
 
 

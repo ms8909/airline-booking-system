@@ -14,56 +14,53 @@ def register_a():
 #Authenticates the login
 @app.route('/loginAuth_a', methods=['GET', 'POST'])
 def loginAuth_a():
-    email = request.form['email']
-    password = request.form['password']
-    booking_agent_id = request.form['booking_agent_id']
-    cursor = conn.cursor()
+	email = request.form['email']
+	password = request.form['password']
+	booking_agent_id = request.form['booking_agent_id']
+	cursor = conn.cursor()
 	query = 'SELECT password FROM booking_agent WHERE email = %s'
-    cursor.execute(query, (email))
-    data = cursor.fetchone()
-    cursor.close()
-    error = None
-    if(data):
-        result= check_password_hash(data['password'],password)
-        if result==False:
-            error = 'Invalid login or username'
-            return render_template('login_a.html', error=error)
-        else:
-            session['email'] = email
-		    session['booking_agent_id'] = booking_agent_id
-		    return redirect(url_for('home_a'))
-    else:
-        error = 'Invalid login or username'
-        return render_template('login_c.html', error=error)
+	cursor.execute(query, (email))
+	data = cursor.fetchone()
+	cursor.close()
+	error = None
+	if(data):
+		result= check_password_hash(data['password'],password)
+		if result==False:
+			error = 'Invalid login or username'
+			return render_template('login_a.html', error=error)
+		else:
+			session['email'] = email
+			session['booking_agent_id'] = booking_agent_id
+			return redirect(url_for('home_a'))
+	else:
+		error = 'Invalid login or username'
+		return render_template('login_c.html', error=error)
 
 #Authenticates the register
 @app.route('/registerAuth_a', methods=['GET', 'POST'])
 def registerAuth_a():
 	#grabs information from the forms
-    email = request.form['email']
-    password = request. form['password']
-    booking_agent_id= request.form['booking_agent_id']
-
-	#cursor used to send queries
-    cursor = conn.cursor()
+	email = request.form['email']
+	password = request. form['password']
+	booking_agent_id= request.form['booking_agent_id']
+	cursor = conn.cursor()
 	#executes query
-    query = 'SELECT * FROM booking_agent WHERE email = %s'
-    cursor.execute(query, (email))
+	query = 'SELECT * FROM booking_agent WHERE email = %s'
+	cursor.execute(query, (email))
 	#stores the results in a variable
-    data = cursor.fetchone()
+	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
-    error = None
-    if(data):
-		#If the previous query returns data, then user exists
-        error = "This user already exists"
-        return render_template('register_a.html', error = error)
-    else:
+	error = None
+	if(data):
+		error = "This user already exists"
+		return render_template('register_a.html', error = error)
+	else:
 		password = generate_password_hash(password)
-        ins = 'INSERT INTO booking_agent(email, password, booking_agent_id) VALUES(%s, %s, %s)'
-        cursor.execute(ins, (email, password, booking_agent_id))
-        conn.commit()
-        cursor.close()
-        return render_template('login_a.html')
+		ins = 'INSERT INTO booking_agent(email, password, booking_agent_id) VALUES(%s, %s, %s)'
+		cursor.execute(ins, (email, password, booking_agent_id))
+		conn.commit()
+		cursor.close()
+		return render_template('login_a.html')
 
 #
 
@@ -351,19 +348,39 @@ def view_my_commissions_a():
 	booking_agent_id = session['booking_agent_id']
 
 	cursor = conn.cursor()
+	try:
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
 
-	#total amount of commissions last 30 days
-	query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
-	cursor.execute(query0, (booking_agent_id))
-	total_com = cursor.fetchone()['sum']
-	#average commission last 30 days
-	query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
-	cursor.execute(query1, (booking_agent_id))
-	avg_com = cursor.fetchone()['average']
-	#total number of tickets sold last 30 days
-	query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
-	cursor.execute(query2, (booking_agent_id))
-	count = cursor.fetchone()['count']
+        start_date= start_date+' 00:00:00'
+        end_date= end_date+' 00:00:00'
+
+		#total amount of commissions last 30 days
+		query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
+		cursor.execute(query0, (booking_agent_id))
+		total_com = cursor.fetchone()['sum']
+		#average commission last 30 days
+		query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
+		cursor.execute(query1, (booking_agent_id))
+		avg_com = cursor.fetchone()['average']
+		#total number of tickets sold last 30 days
+		query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
+		cursor.execute(query2, (booking_agent_id))
+		count = cursor.fetchone()['count']
+
+	except:
+		#total amount of commissions last 30 days
+		query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+		cursor.execute(query0, (booking_agent_id))
+		total_com = cursor.fetchone()['sum']
+		#average commission last 30 days
+		query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+		cursor.execute(query1, (booking_agent_id))
+		avg_com = cursor.fetchone()['average']
+		#total number of tickets sold last 30 days
+		query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+		cursor.execute(query2, (booking_agent_id))
+		count = cursor.fetchone()['count']
 
 	cursor.close()
 
