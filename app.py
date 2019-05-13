@@ -4,6 +4,8 @@ import pymysql.cursors
 import matplotlib.pyplot as plt
 import numpy as np
 
+import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 #Initialize the app from Flask
@@ -14,11 +16,13 @@ app.config['ENV'] = 'development'
 app.config['DEBUG'] = True
 app.config['TESTING'] = True
 
+# app.debug = True
+
 conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
                        password='root',
-                       db='airport',
+                       db='airline',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -42,36 +46,32 @@ def register_c():
 #Authenticates the login
 @app.route('/loginAuth_c', methods=['GET', 'POST'])
 def loginAuth_c():
-	#grabs information from the forms
-	username = request.form['username']
-	password = request.form['password']
-
-	#cursor used to send queries
-	cursor = conn.cursor()
-	#executes query
-	query = 'SELECT * FROM customer WHERE email = %s and password = %s'
-	cursor.execute(query, (username, password))
-	#stores the results in a variable
-	data = cursor.fetchone()
-	#use fetchall() if you are expecting more than 1 data row
-	cursor.close()
-	error = None
-	if(data):
-		#creates a session for the user
-		#session is a built in
-		session['username'] = username
-		return redirect(url_for('home_c'))
-	else:
-		#returns an error message to the html page
-		error = 'Invalid login or username'
-		return render_template('login_c.html', error=error)
+    username = request.form['username']
+    password = request.form['password']
+    cursor = conn.cursor()
+    query = 'SELECT password FROM customer WHERE email = %s'
+    cursor.execute(query, (username))
+    data = cursor.fetchone()
+    cursor.close()
+    error = None
+    if(data):
+        result= check_password_hash(data['password'],password)
+        if result==False:
+            error = 'Invalid login or username'
+            return render_template('login_c.html', error=error)
+        else:
+            session['username'] = username
+            return redirect(url_for('home_c'))
+    else:
+        error = 'Invalid login or username'
+        return render_template('login_c.html', error=error)
 
 #Authenticates the register
 @app.route('/registerAuth_c', methods=['GET', 'POST'])
 def registerAuth_c():
 	#grabs information from the forms
     email = request.form['email']
-    password = request. form['password']
+    password = request.form['password']
     first_name = request.form['first_name']
     last_name = request.form['last_name']
     building_number = request.form['building_number']
@@ -101,6 +101,8 @@ def registerAuth_c():
         error = "This user already exists"
         return render_template('register_c.html', error = error)
     else:
+        # hash the password and then enter in the databases
+        password = generate_password_hash(password)
         ins = 'INSERT INTO customer VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
         cursor.execute(ins, (email, password, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
         conn.commit()
@@ -502,19 +504,23 @@ def loginAuth_s():
     username = request.form['username']
     password = request.form['password']
     cursor = conn.cursor()
-    query = 'SELECT * FROM airline_staff WHERE username = %s and password = %s'
-    cursor.execute(query, (username, password))
+    query = 'SELECT password FROM airline_staff WHERE username = %s'
+    cursor.execute(query, (username))
 	#stores the results in a variable
     data = cursor.fetchone()
     cursor.close()
     error = None
-    if data==None:
+    if(data):
+        result= check_password_hash(data['password'],password)
+        if result==False:
+            error = 'Invalid login or username'
+            return render_template('login_s.html', error=error)
+        else:
+            session['username'] = username
+            return redirect(url_for('home_s'))
+    else:
         error = 'Invalid login or username'
         return render_template('login_s.html', error=error)
-
-    session['username'] = username
-
-    return redirect(url_for('home_s'))
 
 
 #Authenticates the register
@@ -541,6 +547,7 @@ def registerAuth_s():
         if data==None:
             ins = 'INSERT INTO airline(name) VALUES(%s)'
             cursor.execute(ins, (airline_name))
+        password = generate_password_hash(password)
         ins = 'INSERT INTO airline_staff(username, password, first_name, last_name, airline_name) VALUES(%s, %s, %s,%s,%s)'
         cursor.execute(ins, (username, password, first_name, last_name, airline_name))
         conn.commit()
@@ -872,6 +879,7 @@ def view_top_destinations():
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5000)
+    # app.run('127.0.0.1', 5000)
+    app.run(debug=True)
 
 from app_a import *
