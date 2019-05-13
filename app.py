@@ -3,13 +3,10 @@ from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
 import matplotlib.pyplot as plt
 import numpy as np
-<<<<<<< HEAD
+
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-=======
 
-
->>>>>>> 1e1f2fd937da171eac416e7fd36aba2e2123106a
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -25,7 +22,7 @@ conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
                        password='root',
-                       db='airport',
+                       db='airline',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -49,34 +46,25 @@ def register_c():
 #Authenticates the login
 @app.route('/loginAuth_c', methods=['GET', 'POST'])
 def loginAuth_c():
-	#grabs information from the forms
-	username = request.form['username']
-	password = request.form['password']
-
-	#cursor used to send queries
-	cursor = conn.cursor()
-	#executes query
-	query = 'SELECT password FROM customer WHERE email = %s'
-	cursor.execute(query, (username))
-	#stores the results in a variable
-	data = cursor.fetchone()
-	#use fetchall() if you are expecting more than 1 data row
-	cursor.close()
-	error = None
-	if(data):
-		#creates a session for the user
-		#session is a built in
-        result= check_password_hash(data['password'], password)
+    username = request.form['username']
+    password = request.form['password']
+    cursor = conn.cursor()
+    query = 'SELECT password FROM customer WHERE email = %s'
+    cursor.execute(query, (username))
+    data = cursor.fetchone()
+    cursor.close()
+    error = None
+    if(data):
+        result= check_password_hash(data['password'],password)
         if result==False:
             error = 'Invalid login or username'
-    		return render_template('login_c.html', error=error)
+            return render_template('login_c.html', error=error)
         else:
-    		session['username'] = username
-    		return redirect(url_for('home_c'))
-	else:
-		#returns an error message to the html page
-		error = 'Invalid login or username'
-		return render_template('login_c.html', error=error)
+            session['username'] = username
+            return redirect(url_for('home_c'))
+    else:
+        error = 'Invalid login or username'
+        return render_template('login_c.html', error=error)
 
 #Authenticates the register
 @app.route('/registerAuth_c', methods=['GET', 'POST'])
@@ -517,19 +505,23 @@ def loginAuth_s():
     username = request.form['username']
     password = request.form['password']
     cursor = conn.cursor()
-    query = 'SELECT * FROM airline_staff WHERE username = %s and password = %s'
-    cursor.execute(query, (username, password))
+    query = 'SELECT password FROM airline_staff WHERE username = %s'
+    cursor.execute(query, (username))
 	#stores the results in a variable
     data = cursor.fetchone()
     cursor.close()
     error = None
-    if data==None:
+    if(data):
+        result= check_password_hash(data['password'],password)
+        if result==False:
+            error = 'Invalid login or username'
+            return render_template('login_s.html', error=error)
+        else:
+            session['username'] = username
+            return redirect(url_for('home_s'))
+    else:
         error = 'Invalid login or username'
         return render_template('login_s.html', error=error)
-
-    session['username'] = username
-
-    return redirect(url_for('home_s'))
 
 
 #Authenticates the register
@@ -556,6 +548,7 @@ def registerAuth_s():
         if data==None:
             ins = 'INSERT INTO airline(name) VALUES(%s)'
             cursor.execute(ins, (airline_name))
+        password = generate_password_hash(password)
         ins = 'INSERT INTO airline_staff(username, password, first_name, last_name, airline_name) VALUES(%s, %s, %s,%s,%s)'
         cursor.execute(ins, (username, password, first_name, last_name, airline_name))
         conn.commit()

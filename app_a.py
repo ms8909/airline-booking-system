@@ -18,20 +18,23 @@ def loginAuth_a():
     password = request.form['password']
     booking_agent_id = request.form['booking_agent_id']
     cursor = conn.cursor()
-    query = 'SELECT * FROM booking_agent WHERE email = %s and password = %s and booking_agent_id = %s'
-    cursor.execute(query, (email, password, booking_agent_id))
-	#stores the results in a variable
+	query = 'SELECT password FROM booking_agent WHERE email = %s'
+    cursor.execute(query, (email))
     data = cursor.fetchone()
     cursor.close()
     error = None
-    if data==None:
+    if(data):
+        result= check_password_hash(data['password'],password)
+        if result==False:
+            error = 'Invalid login or username'
+            return render_template('login_a.html', error=error)
+        else:
+            session['email'] = email
+		    session['booking_agent_id'] = booking_agent_id
+		    return redirect(url_for('home_a'))
+    else:
         error = 'Invalid login or username'
-        return render_template('login_a.html', error=error)
-
-    session['email'] = email
-    session['booking_agent_id'] = booking_agent_id
-    return redirect(url_for('home_a'))
-
+        return render_template('login_c.html', error=error)
 
 #Authenticates the register
 @app.route('/registerAuth_a', methods=['GET', 'POST'])
@@ -44,8 +47,8 @@ def registerAuth_a():
 	#cursor used to send queries
     cursor = conn.cursor()
 	#executes query
-    query = 'SELECT * FROM booking_agent WHERE email = %s and password = %s and booking_agent_id = %s'
-    cursor.execute(query, (email, password, booking_agent_id))
+    query = 'SELECT * FROM booking_agent WHERE email = %s'
+    cursor.execute(query, (email))
 	#stores the results in a variable
     data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
@@ -55,6 +58,7 @@ def registerAuth_a():
         error = "This user already exists"
         return render_template('register_a.html', error = error)
     else:
+		password = generate_password_hash(password)
         ins = 'INSERT INTO booking_agent(email, password, booking_agent_id) VALUES(%s, %s, %s)'
         cursor.execute(ins, (email, password, booking_agent_id))
         conn.commit()
