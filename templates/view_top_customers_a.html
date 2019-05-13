@@ -7,6 +7,13 @@
 		<script> zingchart.MODULESDIR = "https://cdn.zingchart.com/modules/";
 		ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9","ee6b7db5b51705a13dc2339db3edaf6d"];</script></head>
 	<body>
+	</br></br>
+	<a href="/view_my_flights_a">View My Flights</a>
+	<a href="/home_a">Search For Flights</a>
+	<a href="/view_my_commissions_a">View my Commissions</a>
+	<a href="/view_top_customers_a">View Top Customers</a>
+	</br></br>
+
 		<div id='myBarChart1'></div>
 		<script>
 		var myData = {{top5y}};
@@ -16,7 +23,7 @@
 						{
 								"type":"bar",
 								"title":{
-										"text":"Bar Chart"
+										"text":"Top 5 customers based on number of tickets in the past 6 months"
 								},
 								"scale-x":{
 										"labels": {{top5x | safe}}
@@ -47,7 +54,7 @@
 						{
 								"type":"bar",
 								"title":{
-										"text":"Bar Chart"
+										"text":"top 5 customers based on amount of commission received in the last year"
 								},
 								"scale-x":{
 										"labels": {{top5commx | safe}}
@@ -70,12 +77,6 @@
 		</script>
 
 
-</br></br>
-<a href="/view_my_flights_a">View My Flights</a>
-<a href="/home_a">Search For Flights</a>
-<a href="/view_my_commissions_a">View my Commissions</a>
-<a href="/view_top_customers_a">View Top Customers</a>
-</br></br>
 
 
 <a href="/logout">Logout</a>

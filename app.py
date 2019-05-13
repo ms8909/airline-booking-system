@@ -22,7 +22,7 @@ conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
                        password='root',
-                       db='airline',
+                       db='airport',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -787,8 +787,8 @@ def view_freq_customers():
 
     cursor = conn.cursor()
 
-    query = 'SELECT customer_email FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 12 month) GROUP BY customer_email ORDER BY COUNT(ticket_id) DESC limit 1'
-    cursor.execute(query)
+    query = 'SELECT customer_email FROM ticket natural join buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 12 month) and airline_name = %s GROUP BY customer_email ORDER BY COUNT(ticket_id) DESC limit 1'
+    cursor.execute(query, (airline_name['airline_name']))
     customer = cursor.fetchone()
 
     query1 = 'SELECT flight_num, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, base_price FROM buys natural join ticket natural join flight where customer_email = %s and airline_name = %s'

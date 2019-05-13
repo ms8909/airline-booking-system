@@ -348,22 +348,24 @@ def view_my_commissions_a():
 	booking_agent_id = session['booking_agent_id']
 	cursor = conn.cursor()
 	try:
+		print("Try")
 		start_date = request.form['start_date']
 		end_date = request.form['end_date']
 		start_date= start_date+' 00:00:00'
-		end_date= end_date+' 00:00:00'
+		end_date= end_date+' 23:59:00'
 
 		#total amount of commissions last 30 days
-		query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
-		cursor.execute(query0, (booking_agent_id))
+		query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time between %s and %s and booking_agent_id = %s'
+		cursor.execute(query0, (start_date, end_date, booking_agent_id))
 		total_com = cursor.fetchone()['sum']
+		print(total_com)
 		#average commission last 30 days
-		query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
-		cursor.execute(query1, (booking_agent_id))
+		query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time between %s and %s and booking_agent_id = %s'
+		cursor.execute(query1, (start_date, end_date, booking_agent_id))
 		avg_com = cursor.fetchone()['average']
 		#total number of tickets sold last 30 days
-		query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time >= %s and payment_time<=  %s and booking_agent_id = %s'
-		cursor.execute(query2, (booking_agent_id))
+		query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time between %s and %s and booking_agent_id = %s'
+		cursor.execute(query2, (start_date, end_date, booking_agent_id))
 		count = cursor.fetchone()['count']
 
 	except:
