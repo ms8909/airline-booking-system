@@ -30,18 +30,18 @@ conn = pymysql.connect(host='localhost',
 
 @app.route('/login')
 def login():
-	return render_template('login.html')
+    return render_template('login.html')
 
 
 
 @app.route('/login_c')
 def login_c():
-	return render_template('login_c.html')
+    return render_template('login_c.html')
 
 #Define route for register
 @app.route('/register_c')
 def register_c():
-	return render_template('register_c.html')
+    return render_template('register_c.html')
 
 #Authenticates the login
 @app.route('/loginAuth_c', methods=['GET', 'POST'])
@@ -69,7 +69,7 @@ def loginAuth_c():
 #Authenticates the register
 @app.route('/registerAuth_c', methods=['GET', 'POST'])
 def registerAuth_c():
-	#grabs information from the forms
+    #grabs information from the forms
     email = request.form['email']
     password = request.form['password']
     first_name = request.form['first_name']
@@ -87,17 +87,17 @@ def registerAuth_c():
     dob_m = request.form['dob_m']
     dob_y = request.form['dob_y']
 
-	#cursor used to send queries
+    #cursor used to send queries
     cursor = conn.cursor()
-	#executes query
+    #executes query
     query = 'SELECT * FROM customer WHERE email = %s'
     cursor.execute(query, (email))
-	#stores the results in a variable
+    #stores the results in a variable
     data = cursor.fetchone()
-	#use fetchall() if you are expecting more than 1 data row
+    #use fetchall() if you are expecting more than 1 data row
     error = None
     if(data):
-		#If the previous query returns data, then user exists
+        #If the previous query returns data, then user exists
         error = "This user already exists"
         return render_template('register_c.html', error = error)
     else:
@@ -135,11 +135,11 @@ def search():
     arrival_m = request.form['arrival_m']
     arrival_y = request.form['arrival_y']
 
-	#cursor used to send queries
+    #cursor used to send queries
     cursor = conn.cursor()
     if round_trip=='No':
 
-    	#executes query
+        #executes query
         #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
         query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
         #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
@@ -147,9 +147,9 @@ def search():
 
 
         cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
-    	#stores the results in a variable
+        #stores the results in a variable
         data = cursor.fetchall()
-    	#use fetchall() if you are expecting more than 1 data row
+        #use fetchall() if you are expecting more than 1 data row
         cursor.close()
         error = None
         print(data)
@@ -164,19 +164,19 @@ def search():
                 price = cursor.fetchone()
                 print(price)
 
-                queryseats = 'SELECT number_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+                queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
                 cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
                 seats = cursor.fetchone()
                 print(seats)
 
-                if count/seats >= .7:
-                    d['price']= price*1.25
+                if count['c']/seats['num_of_seats'] >= .7:
+                    d['price']= price['base_price']*1.20
                 else:
-                    d['price']= price*1.25
+                    d['price']= price['base_price']
 
             return render_template('home_c.html', error='', flights=data)
         else:
-    		#returns an error message to the html page
+            #returns an error message to the html page
             message = 'No Tickets available'
             return render_template('home_c.html', error=message)
     else:
@@ -209,11 +209,11 @@ def search_c():
     arrival_m = request.form['arrival_m']
     arrival_y = request.form['arrival_y']
 
-	#cursor used to send queries
+    #cursor used to send queries
     cursor = conn.cursor()
     if round_trip=='No':
 
-    	#executes query
+        #executes query
         #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
         query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
         #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
@@ -221,9 +221,9 @@ def search_c():
 
 
         cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
-    	#stores the results in a variable
+        #stores the results in a variable
         data = cursor.fetchall()
-    	#use fetchall() if you are expecting more than 1 data row
+        #use fetchall() if you are expecting more than 1 data row
         cursor.close()
         error = None
         print(data)
@@ -238,19 +238,19 @@ def search_c():
                 price = cursor.fetchone()
                 print(price)
 
-                queryseats = 'SELECT number_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+                queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
                 cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
                 seats = cursor.fetchone()
                 print(seats)
 
-                if count/seats >= .7:
-                    d['price']= price*1.25
+                if count['c']/seats['num_of_seats'] >= .7:
+                    d['price']= price['base_price']*1.20
                 else:
-                    d['price']= price*1.25
+                    d['price']= price['base_price']
 
             return render_template('home_c.html', error='', flights_departure=data, flights_arrival=[])
         else:
-    		#returns an error message to the html page
+            #returns an error message to the html page
             message = 'No Tickets available'
             return render_template('home_c.html', error=message)
     else:
@@ -261,7 +261,7 @@ def search_c():
 
 
         cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y ))
-    	#stores the results in a variable
+        #stores the results in a variable
         data_deparature = cursor.fetchall()
         #use fetchall() if you are expecting more than 1 data row
         for d in data_deparature:
@@ -292,27 +292,29 @@ def search_c():
 
 
         cursor.execute(query, (des_airport, src_airport, arrival_d, arrival_m, arrival_y ))
-    	#stores the results in a variable
+        #stores the results in a variable
         data_arrival = cursor.fetchall()
-        for d in data_arrival:
-            querycount = 'SELECT count(ticket_id) as c from ticket where flight_num== %s and airline_name== %s'
-            cursor.execute(querycount, (d['flight_num'], d['airline_name']))
+        for d2 in data_arrival:
+            querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+            cursor.execute(querycount, (d2['flight_num'], d2['airline_name']))
             count = cursor.fetchone()
             print(count)
-            queryprice = 'SELECT base_price from flight where flight_num== %s and airline_name== %s'
-            cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+            queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+            cursor.execute(queryprice, (d2['flight_num'], d2['airline_name']))
             price = cursor.fetchone()
             print(price)
 
-            queryseats = 'SELECT number_of_seats from flight, airplane where airplane_id=id and flight_num== %s and airline_name== %s'
-            cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+            queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+            cursor.execute(queryseats, (d2['flight_num'], d2['airline_name']))
             seats = cursor.fetchone()
             print(seats)
 
-            if count/seats >= .7:
-                d['price']= price*1.25
+            if count['c']/seats['num_of_seats'] >= .7:
+                print("1")
+                d2['price']= price['base_price']*1.20
             else:
-                d['price']= price*1.25
+                print("2")
+                d2['price']= price['base_price']
 
         cursor.close()
         error = None
@@ -375,11 +377,52 @@ def purchase_ticket_c():
 
         #use fetchall() if you are expecting more than 1 data row
         dep_data = cursor.fetchone()
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (dep_data['flight_num'], dep_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (dep_data['flight_num'], dep_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (dep_data['flight_num'], dep_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            dep_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            dep_data['base_price']= price['base_price']
 
         query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
         cursor.execute(query, (flight_num_arr, airline_name_arr))
         #stores the results in a variable
         arr_data = cursor.fetchone()
+
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (arr_data['flight_num'], arr_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (arr_data['flight_num'], arr_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (arr_data['flight_num'], arr_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            arr_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            arr_data['base_price']= price['base_price']
         cursor.close()
 
         #save the flight number in the session
@@ -403,7 +446,26 @@ def purchase_ticket_c():
 
         #use fetchall() if you are expecting more than 1 data row
         dep_data = cursor.fetchone()
-        cursor.close()
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (dep_data['flight_num'], dep_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (dep_data['flight_num'], dep_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (dep_data['flight_num'], dep_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            dep_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            dep_data['base_price']= price['base_price']
 
         #save the flight number in the session
         session['flight_num_dep'] = flight_num_dep
@@ -452,9 +514,32 @@ def payment_c():
         ticket_number= str(randint(10000, 99999))
         payment_number = str(randint(10000000, 99999999))
 
-        query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
-        price = cursor.fetchone()['base_price']
+        # query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query, (flight_num_dep, airline_name_dep))
+        # price = cursor.fetchone()['base_price']
+
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_dep, airline_name_dep))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_dep, airline_name_dep))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_dep, airline_name_dep))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price= price['base_price']*1.20
+        else:
+            print("2")
+            price= price['base_price']
+
+
 
         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
@@ -481,13 +566,55 @@ def payment_c():
         ticket_number= str(randint(10000, 99999))
         payment_number = str(randint(10000000, 99999999))
 
-        query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
-        price_dep = cursor.fetchone()['base_price']
+        # query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query, (flight_num_dep, airline_name_dep))
+        # price_dep = cursor.fetchone()['base_price']
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_dep, airline_name_dep))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_dep, airline_name_dep))
+        price = cursor.fetchone()
+        print(price)
 
-        query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query6, (flight_num_arr, airline_name_arr))
-        price_arr = cursor.fetchone()['base_price']
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_dep, airline_name_dep))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price_dep= price['base_price']*1.20
+        else:
+            print("2")
+            price_dep= price['base_price']
+
+
+        # query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query6, (flight_num_arr, airline_name_arr))
+        # price_arr = cursor.fetchone()['base_price']
+
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_arr, airline_name_arr))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_arr, airline_name_arr))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_arr, airline_name_arr))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price_arr= price['base_price']*1.20
+        else:
+            print("2")
+            price_arr= price['base_price']
 
         price = price_dep + price_arr
 
@@ -565,12 +692,12 @@ app.secret_key = 'some key that you will never guess'
 
 @app.route('/login_s')
 def login_s():
-	return render_template('login_s.html')
+    return render_template('login_s.html')
 
 #Define route for register
 @app.route('/register_s')
 def register_s():
-	return render_template('register_s.html')
+    return render_template('register_s.html')
 
 #Authenticates the login
 @app.route('/loginAuth_s', methods=['GET', 'POST'])
@@ -580,7 +707,7 @@ def loginAuth_s():
     cursor = conn.cursor()
     query = 'SELECT password FROM airline_staff WHERE username = %s'
     cursor.execute(query, (username))
-	#stores the results in a variable
+    #stores the results in a variable
     data = cursor.fetchone()
     cursor.close()
     error = None
@@ -616,7 +743,7 @@ def registerAuth_s():
     else:
         query = 'SELECT name FROM airline WHERE name = %s'
         cursor.execute(query, (airline_name))
-        	#stores the results in a variable
+            #stores the results in a variable
         data = cursor.fetchone()
         if data==None:
             ins = 'INSERT INTO airline(name) VALUES(%s)'
@@ -641,7 +768,7 @@ def home_s():
     cursor = conn.cursor()
     query = 'SELECT airline_name FROM airline_staff WHERE username = %s'
     cursor.execute(query, (username))
-	#stores the results in a variable
+    #stores the results in a variable
     data = cursor.fetchone()
     session['airline_name'] = data
 
@@ -837,18 +964,18 @@ def view_all_booking_agents():
         return render_template('login_s.html')
 
     cursor = conn.cursor()
-	#top 5 booking agents based on num tickets sold for the last month
+    #top 5 booking agents based on num tickets sold for the last month
     query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 1 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by count(ticket_id) desc limit 5'
     cursor.execute(query, ())
     top_agents_month = cursor.fetchall()
     print("top_agents_month", top_agents_month)
-	#top 5 booking agents based on num tickets for the last year
+    #top 5 booking agents based on num tickets for the last year
     query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 12 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by count(ticket_id) desc limit 5'
     cursor.execute(query, ())
     top_agents_year = cursor.fetchall()
 
 
-	#top 5 booking agents based on commissions received for the last year
+    #top 5 booking agents based on commissions received for the last year
     query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 12 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by sum(sold_price*0.1) desc limit 5'
     cursor.execute(query, ())
     top_agents_comm = cursor.fetchall()
@@ -953,12 +1080,12 @@ def view_top_destinations():
         return render_template('login_s.html')
 
     cursor = conn.cursor()
-	#top destinations within the airline_name
+    #top destinations within the airline_name
     query = 'SELECT city FROM flight natural join ticket natural join buys natural join paid natural join payment, airport where airport.id = flight.arrival_airport and payment_time >= date_sub(now(), interval 3 month) and airline_name = %s group by flight.arrival_airport order by count(flight.arrival_airport) desc limit 3'
     cursor.execute(query, (airline_name['airline_name']))
     cities_month = cursor.fetchall()
     print("cities_month", cities_month)
-	#top destinations within the airline_name
+    #top destinations within the airline_name
     query1 = 'SELECT city FROM flight natural join ticket natural join buys natural join paid natural join payment, airport where airport.id = flight.arrival_airport and payment_time >= date_sub(now(), interval 12 month) and airline_name = %s group by flight.arrival_airport order by count(flight.arrival_airport) desc limit 3'
     cursor.execute(query1, (airline_name['airline_name']))
     cities_year = cursor.fetchall()

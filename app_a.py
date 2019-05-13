@@ -78,72 +78,95 @@ def home_a():
 
 @app.route('/search_a', methods=['GET', 'POST'])
 def search_a():
-    # global search
-    src_airport = request.form['src_airport']
-    des_airport = request.form['des_airport']
-    departure_d = request.form['departure_d']
-    departure_m = request.form['departure_m']
-    departure_y = request.form['departure_y']
-
-    round_trip = request.form['round_trip']
-    arrival_d = request.form['arrival_d']
-    arrival_m = request.form['arrival_m']
-    arrival_y = request.form['arrival_y']
-
-	#cursor used to send queries
-    cursor = conn.cursor()
-    if round_trip=='No':
-
-    	#executes query
-        #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
-        #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
-
-
-        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
-    	#stores the results in a variable
-        data = cursor.fetchall()
-    	#use fetchall() if you are expecting more than 1 data row
-        cursor.close()
-        error = None
-        print(data)
-        if(data):
-            return render_template('home_a.html', error='', flights_departure=data, flights_arrival=[])
-        else:
-    		#returns an error message to the html page
-            message = 'No Tickets available'
-            return render_template('home_a.html', error=message)
-    else:
-        #executes query
-        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
-        #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
-
-
-        cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y ))
-    	#stores the results in a variable
-        data_deparature = cursor.fetchall()
-        #use fetchall() if you are expecting more than 1 data row
-
-        # arrival
-        query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
-        #select (num_of_seats - (select count(flight_num) from buys natural join ticket natural join flight natural join airplane where flight_num = %s)) as available_seats
-        #from airplane, flight where airplane.id = flight.airplane_id and airplane.airline_name = flight.airline_name and flight.flight_num = %s
-
-
-        cursor.execute(query, (des_airport, src_airport, arrival_d, arrival_m, arrival_y ))
-    	#stores the results in a variable
-        data_arrival = cursor.fetchall()
-
-        cursor.close()
-        error = None
-        if(data_deparature):
-            return render_template('home_a.html', error='', flights_departure=data_deparature, flights_arrival=data_arrival)
-        else:
-            #returns an error message to the html page
-            message = 'No Tickets available'
-            return render_template('home_a.html', error=message, flighs=[])
+	src_airport = request.form['src_airport']
+	des_airport = request.form['des_airport']
+	departure_d = request.form['departure_d']
+	departure_m = request.form['departure_m']
+	departure_y = request.form['departure_y']
+	round_trip = request.form['round_trip']
+	arrival_d = request.form['arrival_d']
+	arrival_m = request.form['arrival_m']
+	arrival_y = request.form['arrival_y']
+	cursor = conn.cursor()
+	if round_trip=='No':
+		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year %s'
+		cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
+		data = cursor.fetchall()
+		cursor.close()
+		error = None
+		print(data)
+		if(data):
+			for d in data:
+				querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+				cursor.execute(querycount, (d['flight_num'], d['airline_name']))
+				count = cursor.fetchone()
+				print(count)
+				queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+				cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+				price = cursor.fetchone()
+				print(price)
+				queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+				cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+				seats = cursor.fetchone()
+				print(seats)
+				if count['c']/seats['num_of_seats'] >= .7:
+					d['price']= price['base_price']*1.20
+				else:
+					d['price']= price['base_price']
+			return render_template('home_a.html', error='', flights_departure=data, flights_arrival=[])
+		else:
+			message = 'No Tickets available'
+			return render_template('home_a.html', error=message)
+	else:
+		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year %s'
+		cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y ))
+		data_deparature = cursor.fetchall()
+		for d in data_deparature:
+			querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+			cursor.execute(querycount, (d['flight_num'], d['airline_name']))
+			count = cursor.fetchone()
+			print(count)
+			queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+			cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+			price = cursor.fetchone()
+			print(price)
+			queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+			cursor.execute(queryseats, (d['flight_num'], d['airline_name']))
+			seats = cursor.fetchone()
+			print(seats)
+			if count['c']/seats['num_of_seats'] >= .7:
+				d['price']= price['base_price']*1.20
+			else:
+				d['price']= price['base_price']
+		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
+		cursor.execute(query, (des_airport, src_airport, arrival_d, arrival_m, arrival_y ))
+		data_arrival = cursor.fetchall()
+		for d2 in data_arrival:
+			querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+			cursor.execute(querycount, (d2['flight_num'], d2['airline_name']))
+			count = cursor.fetchone()
+			print(count)
+			queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+			cursor.execute(queryprice, (d2['flight_num'], d2['airline_name']))
+			price = cursor.fetchone()
+			print(price)
+			queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+			cursor.execute(queryseats, (d2['flight_num'], d2['airline_name']))
+			seats = cursor.fetchone()
+			print(seats)
+			if count['c']/seats['num_of_seats'] >= .7:
+				print("1")
+				d2['price']= price['base_price']*1.20
+			else:
+				print("2")
+				d2['price']= price['base_price']
+		cursor.close()
+		error = None
+		if(data_deparature):
+			return render_template('home_a.html', error='', flights_departure=data_deparature, flights_arrival=data_arrival)
+		else:
+			message = 'No Tickets available'
+			return render_template('home_a.html', error=message, flighs=[])
 
 
 @app.route('/purchase_ticket_a', methods=['GET', 'POST'])
@@ -151,36 +174,62 @@ def purchase_ticket_a():
     email = session['email']
     if email==None:
         return render_template('login_a.html')
-
-
-    #get the flight number
     flight_num_dep = request.form['flight_num_dep']
     airline_name_dep = request.form["airline_name_dep"]
-
-
     round='no'
     try:
         flight_num_arr = request.form['flight_num_arr']
         airline_name_arr = request.form["airline_name_arr"]
         round='yes'
-        #print(flight_num_arr)
     except:
         round='no'
-
     cursor = conn.cursor()
     if round=='yes':
         flight_num_arr = request.form['flight_num_arr']
-
         query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
         cursor.execute(query, (flight_num_dep, airline_name_dep))
-
-        #use fetchall() if you are expecting more than 1 data row
         dep_data = cursor.fetchone()
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (dep_data['flight_num'], dep_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (dep_data['flight_num'], dep_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (dep_data['flight_num'], dep_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            dep_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            dep_data['base_price']= price['base_price']
 
         query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
         cursor.execute(query, (flight_num_arr, airline_name_arr))
         #stores the results in a variable
         arr_data = cursor.fetchone()
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (arr_data['flight_num'], arr_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (arr_data['flight_num'], arr_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (arr_data['flight_num'], arr_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            arr_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            arr_data['base_price']= price['base_price']
         cursor.close()
 
         #save the flight number in the session
@@ -204,6 +253,26 @@ def purchase_ticket_a():
 
         #use fetchall() if you are expecting more than 1 data row
         dep_data = cursor.fetchone()
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (dep_data['flight_num'], dep_data['airline_name']))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (dep_data['flight_num'], dep_data['airline_name']))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (dep_data['flight_num'], dep_data['airline_name']))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            dep_data['base_price']= price['base_price']*1.20
+        else:
+            print("2")
+            dep_data['base_price']= price['base_price']
         cursor.close()
 
         #save the flight number in the session
@@ -280,9 +349,30 @@ def payment_a():
         payment_number = str(randint(10000000, 99999999))
 
 
-        query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
-        price = cursor.fetchone()['base_price']
+        # query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query, (flight_num_dep, airline_name_dep))
+        # price = cursor.fetchone()['base_price']
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_dep, airline_name_dep))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_dep, airline_name_dep))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_dep, airline_name_dep))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price= price['base_price']*1.20
+        else:
+            print("2")
+            price= price['base_price']
+
         price_a = float(price) * 0.9
 
         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
@@ -310,15 +400,55 @@ def payment_a():
         ticket_number= str(randint(10000, 99999))
         payment_number = str(randint(10000000, 99999999))
 
-        query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
-        price_dep = cursor.fetchone()['base_price']
+        # query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query, (flight_num_dep, airline_name_dep))
+        # price_dep = cursor.fetchone()['base_price']
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_dep, airline_name_dep))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_dep, airline_name_dep))
+        price = cursor.fetchone()
+        print(price)
 
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_dep, airline_name_dep))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price_dep= price['base_price']*1.20
+        else:
+            print("2")
+            price_dep= price['base_price']
         price_dep_a = float(price_dep) * 0.9
 
-        query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-        cursor.execute(query6, (flight_num_arr, airline_name_arr))
-        price_arr = cursor.fetchone()['base_price']
+        # query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
+        # cursor.execute(query6, (flight_num_arr, airline_name_arr))
+        # price_arr = cursor.fetchone()['base_price']
+        querycount = 'SELECT count(ticket_id) as c from ticket where flight_num= %s and airline_name= %s'
+        cursor.execute(querycount, (flight_num_arr, airline_name_arr))
+        count = cursor.fetchone()
+        print(count)
+        queryprice = 'SELECT base_price from flight where flight_num= %s and airline_name= %s'
+        cursor.execute(queryprice, (flight_num_arr, airline_name_arr))
+        price = cursor.fetchone()
+        print(price)
+
+        queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
+        cursor.execute(queryseats, (flight_num_arr, airline_name_arr))
+        seats = cursor.fetchone()
+        print(seats)
+
+        if count['c']/seats['num_of_seats'] >= .7:
+            print("1")
+            price_arr= price['base_price']*1.20
+        else:
+            print("2")
+            price_arr= price['base_price']
+
         price_arr_a = float(price_arr)*0.9
 
         price = price_dep + price_arr
