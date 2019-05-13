@@ -217,7 +217,7 @@ def purchase_ticket_a():
         cursor = conn.cursor();
         price=dep_data['base_price']
         #session['price'] = price
-        return render_template('purchase_ticket_c.html', flight_dep=[dep_data], flight_arr=[], price=price)
+        return render_template('purchase_ticket_a.html', flight_dep=[dep_data], flight_arr=[], price=price)
 
 
 @app.route('/payment_a', methods=['GET', 'POST'])
@@ -419,10 +419,22 @@ def view_top_customers_a():
 		top5commx.append(k['customer_email'])
 		top5commy.append(float(k['sum']))
 
-
-
-    #arrange in descending order
-	# print(top5commx)
-	# print(top5commy)
-
 	return render_template('view_top_customers_a.html', username=email, top5x=top5x, top5y=top5y, top5commx= top5commx, top5commy= top5commy)
+
+
+@app.route('/view_my_flights_a', methods=['GET', 'POST'])
+def view_my_flights_a():
+	email = session['email']
+	booking_agent_id = session['booking_agent_id']
+	cursor = conn.cursor()
+	query = 'SELECT email FROM booking_agent where email = %s'
+	cursor.execute(query, (email))
+	data = cursor.fetchone()
+	if data==None:
+		error = "Please login first"
+		return render_template('login_a.html', error = error)
+	query = 'SELECT flight_num, status, customer_email, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM buys natural join ticket natural join flight where booking_agent_id = %s'
+	cursor.execute(query, (booking_agent_id))
+	flights = cursor.fetchall()
+	cursor.close()
+	return render_template('view_my_flights_a.html', username=email, flights=flights)
