@@ -16,20 +16,19 @@
 </br></br>
 
 
-<form action="/change_flight_status" method="POST">
-	<input type="text" name = "flight_num" placeholder="Flight Number" required/> </br>
-	<input type="text" name = "new_status" placeholder="New Status" required/></br>
-	<input type="submit" value = Update />
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
 
 <style type="text/css">
 	table, th, td{
 		border: 1px solid black;
 	}
 </style>
+
+</br></br>
+<h3>
+	The most frequent customer within the last year is {{customer['customer_email']}}
+</h3>
+</br></br>
+
 
 <table>
 	<th>Flight Number</th>

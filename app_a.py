@@ -343,66 +343,67 @@ def payment_a():
 
 @app.route('/view_my_commissions_a', methods=['GET', 'POST'])
 def view_my_commissions_a():
-    email = session['email']
-    cursor = conn.cursor()
+	email = session['email']
+	booking_agent_id = session['booking_agent_id']
 
-    query = 'SELECT ticket_id FROM buys where booking_agent_id = %s'
-    cursor.execute(query, (email))
-    all_tickets = cursor.fetchall()
+	cursor = conn.cursor()
 
-    # I think we need to add time in buys table as well.
+	#total amount of commissions last 30 days
+	query0 = 'SELECT sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+	cursor.execute(query0, (booking_agent_id))
+	total_com = cursor.fetchone()['sum']
+	#average commission last 30 days
+	query1 = 'SELECT avg(sold_price*0.1) as average FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+	cursor.execute(query1, (booking_agent_id))
+	avg_com = cursor.fetchone()['average']
+	#total number of tickets sold last 30 days
+	query2 = 'SELECT count(ticket_id) as count FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 1 month) and booking_agent_id = %s'
+	cursor.execute(query2, (booking_agent_id))
+	count = cursor.fetchone()['count']
 
-    #arrange in descending order
+	cursor.close()
 
-
-
-    cursor.close()
-
-
-    return render_template('view_my_commissions_a.html', username=email, flights=data)
+	return render_template('view_my_commissions_a.html', username=email, total_com=total_com, avg_com = avg_com, count=count)
 
 
 @app.route('/view_top_customers_a', methods=['GET', 'POST'])
 def view_top_customers_a():
-    email = session['email']
-    booking_agent_id = session['booking_agent_id']
+	email = session['email']
+	booking_agent_id = session['booking_agent_id']
 
-    cursor = conn.cursor()
+	cursor = conn.cursor()
 
 	#view top customers based on number of tickets
-    query = 'SELECT customer_email, count(customer_email) as count FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 6 month) and booking_agent_id = %s Group by customer_email order by count desc'
-    cursor.execute(query, (booking_agent_id))
-    top5 = cursor.fetchall()
-    top5x=[]
-    top5y=[]
-    j=0
-    print(top5)
-    for i  in top5:
-        top5x.append(i['customer_email'])
-        top5y.append(i['count'])
-        j=j+1
-        if j>=5:
-            break
+	query = 'SELECT customer_email, count(customer_email) as count FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 6 month) and booking_agent_id = %s Group by customer_email order by count desc limit 5'
+	cursor.execute(query, (booking_agent_id))
+	top5 = cursor.fetchall()
+	#top5y = cursor.fetchall()['count']
 
-    print(top5x)
-    print(top5y)
+	top5x=[]
+	top5y=[]
+	for i  in top5:
+		top5x.append(i['customer_email'])
+		top5y.append(i['count'])
 
-	#view top customers based on number of commissions
-    query = 'SELECT customer_email, sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 12 month) and booking_agent_id = %s group by customer_email order by sum desc'
-    cursor.execute(query, (booking_agent_id))
-    top5comm = cursor.fetchall()
-    top5commx=[]
-    top5commy=[]
-    j=0
-    for k in top5:
-        top5commx.append(k['customer_email'])
-        top5commy.append(k['sum'])
-        j=j+1
-        if j>=5:
-            break
+
+
+	#view top customers based on amount of commissions
+	query = 'SELECT customer_email, sum(sold_price*0.1) as sum FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 12 month) and booking_agent_id = %s group by customer_email order by sum desc limit 5'
+	cursor.execute(query, (booking_agent_id))
+	top5comm = cursor.fetchall()
+
+	top5commx=[]
+	top5commy=[]
+	print(top5comm)
+
+	for k in top5comm:
+		top5commx.append(k['customer_email'])
+		top5commy.append(float(k['sum']))
+
+
 
     #arrange in descending order
-    print(top5commx)
-    print(top5commy)
+	# print(top5commx)
+	# print(top5commy)
 
-    return render_template('view_top_customers_a.html', username=email, top5x=top5x, top5y=top5y, top5commx= top5commx, top5commy= top5commy)
+	return render_template('view_top_customers_a.html', username=email, top5x=top5x, top5y=top5y, top5commx= top5commx, top5commy= top5commy)

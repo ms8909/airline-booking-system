@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+		<script src= "https://cdn.zingchart.com/zingchart.min.js"></script>
+		<script> zingchart.MODULESDIR = "https://cdn.zingchart.com/modules/";
+		ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9","ee6b7db5b51705a13dc2339db3edaf6d"];</script></head>
+	<body>
+		<div id='myChart'></div>
+		<script>
+		var myConfig = {
+		  "type":"pie",
+		  "title":{
+		    "text":"Pie Chart"
+		  },
+		  "series":[
+		    {"values":[{{direct['sum']}}]},     //{{direct}} should return a number only
+		    {"values":[{{indirect['sum']}}]}    //{{indirect}} should return a number only
+		  ]
+		};
+
+		zingchart.render({
+			id : 'myChart',
+			data : myConfig,
+			height: 400,
+			width: "100%"
+		});
+
+		</script>
+	</body>
+</head>
+
+<!--
+<body>
+</br></br>
+<a href="/view_my_flights_s">View My Flights</a>
+<a href="/change_flight_status">Change Flight Status</a>
+<a href="/create_new_flight">Create New Flight</a>
+<a href="/add_new_airplane">Add Airplane</a>
+<a href="/add_new_airport">Add New Airport</a>
+<a href="/view_all_booking_agents">View All Booking Agents</a>
+<a href="/view_freq_customers">View Frequent Customers</a>
+<a href="/view_reports">View Reports</a>
+<a href="/comparision_of_revenue">Comparision Of Revenue</a>
+<a href="/view_top_destinations">View Top Destinations</a>
+</br></br>
+-->
+
+
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>

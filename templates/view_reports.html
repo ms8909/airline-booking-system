@@ -16,10 +16,14 @@
 </br></br>
 
 
-<form action="/add_airplane" method="POST">
-	<input type="text" name = "airplane_id" placeholder="Airplane ID" required/> </br>
-	<input type="text" name = "num_of_seats" placeholder="Number of Seats" required/></br>
-	<input type="submit" value = Add/>
+</br></br>
+<h3>
+	Please specify first the range of months for the Reports
+</h3>
+
+<form action="/view_reports" method="POST">
+	<input type="text" name = "months" placeholder="Number of Months" required/> </br>
+	<input type="submit" value = Search />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
@@ -31,18 +35,11 @@
 	}
 </style>
 
-<table>
-	<th>Airplane ID</th>
-	<th>Number of Seats</th>
+</br></br>
+<h2>
+	Total number of tickets sold for the specified range is {{count}}
+</h2>
 
-{% for line in flights %}
-	<tr>
-		<td>{{line['id']}}</td>
-		<td>{{line['num_of_seats']}}</td>
-
-	</tr>
-{% endfor %}
-</table>
 
 <a href="/logout">Logout</a>
 

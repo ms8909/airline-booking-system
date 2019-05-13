@@ -16,14 +16,6 @@
 </br></br>
 
 
-<form action="/add_airplane" method="POST">
-	<input type="text" name = "airplane_id" placeholder="Airplane ID" required/> </br>
-	<input type="text" name = "num_of_seats" placeholder="Number of Seats" required/></br>
-	<input type="submit" value = Add/>
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
 
 <style type="text/css">
 	table, th, td{
@@ -31,18 +23,59 @@
 	}
 </style>
 
+</br></br>
+<h3>
+	The top 5 booking agents based on tickets sold for the last month
+</h3>
+</br></br>
+
+
 <table>
-	<th>Airplane ID</th>
-	<th>Number of Seats</th>
+	<th>Booking Agent ID</th>
 
-{% for line in flights %}
+{% for line in top_agents_month %}
 	<tr>
-		<td>{{line['id']}}</td>
-		<td>{{line['num_of_seats']}}</td>
-
+		<td>{{line['booking_agent_id']}}</td>
 	</tr>
 {% endfor %}
 </table>
+
+
+</br></br>
+<h3>
+	The top 5 booking agents based on tickets sold for the last year
+</h3>
+</br></br>
+
+
+<table>
+	<th>Booking Agent ID</th>
+
+{% for line in top_agents_year %}
+	<tr>
+		<td>{{line['booking_agent_id']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+
+</br></br>
+<h3>
+	The top 5 booking agents based on commissions received for the last year
+</h3>
+</br></br>
+
+
+<table>
+	<th>Booking Agent ID</th>
+
+{% for line in top_agents_comm %}
+	<tr>
+		<td>{{line['booking_agent_id']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
 
 <a href="/logout">Logout</a>
 

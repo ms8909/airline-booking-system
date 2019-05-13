@@ -16,47 +16,34 @@
 	}
 </style>
 
-<table>
-	<th>Flight Number</th>
-	<th>Status</th>
-	<th>Airline Name</th>
-	<th>Source Airport</th>
-	<th>Departure Hour</th>
-	<th>Departure Minute</th>
-	<th>Departure Day</th>
-	<th>Departure Month</th>
-	<th>Departure Year</th>
-	<th>Destination Airport</th>
-	<th>Arrival Hour</th>
-	<th>Arrival Minute</th>
-	<th>Arrival Day</th>
-	<th>Arrival Month</th>
-	<th>Arrival Year</th>
-	<th>Base Price</th>
+</br></br>
+<h2>
+	Total Amount of Commission received for the last 30 days is {{total_com}}
+</h2>
+</br></br>
+<h2>
+	Average Amount of Commission Received per ticket for the last 30 days is {{avg_com}}
+</h2>
+</br></br>
+<h2>
+	Total Number of Tickets Sold for the last 30 days is {{count}}
+</h2>
 
-{% for line in flights %}
-	<tr>
-		<td>{{line['flight_num']}}</td>
-		<td>{{line['status']}}</td>
-		<td>{{line['airline_name']}}</td>
-		<td>{{line['departure_airport']}}</td>
-		<td>{{line['departure_hour']}}</td>
-		<td>{{line['departure_min']}}</td>
-		<td>{{line['departure_day']}}</td>
-		<td>{{line['departure_month']}}</td>
-		<td>{{line['departure_year']}}</td>
-		<td>{{line['arrival_airport']}}</td>
-		<td>{{line['arrival_hour']}}</td>
-		<td>{{line['arrival_min']}}</td>
-		<td>{{line['arrival_day']}}</td>
-		<td>{{line['arrival_month']}}</td>
-		<td>{{line['arrival_year']}}</td>
-		<td>{{line['base_price']}}</td>
-
-	</tr>
-{% endfor %}
-</table>
-
+<!--
+</br></br>
+<h3>
+	Enter the number of months you want to see the data for:
+</h3>
+<form action="/view_my_commissions_a" method="POST">
+	<input type="number" name = "total" placeholder="Total Commission Month Range" required/> </br>
+	<input type="number" name = "average" placeholder="Average Commission Month Range" required/> </br>
+	<input type="number" name = "tickets" placeholder="Number of Tickets Sold Month Range" required/> </br>
+	<input type="submit" value = Enter />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+-->
 <a href="/logout">Logout</a>
 
 </body>

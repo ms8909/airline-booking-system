@@ -16,33 +16,47 @@
 </br></br>
 
 
-<form action="/add_airplane" method="POST">
-	<input type="text" name = "airplane_id" placeholder="Airplane ID" required/> </br>
-	<input type="text" name = "num_of_seats" placeholder="Number of Seats" required/></br>
-	<input type="submit" value = Add/>
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
-
 <style type="text/css">
 	table, th, td{
 		border: 1px solid black;
 	}
 </style>
 
+</br></br>
+<h3>
+	The top 3 destinations for the last 3 months
+</h3>
+</br></br>
+
+
 <table>
-	<th>Airplane ID</th>
-	<th>Number of Seats</th>
+	<th>Destination</th>
 
-{% for line in flights %}
+{% for line in cities_month %}
 	<tr>
-		<td>{{line['id']}}</td>
-		<td>{{line['num_of_seats']}}</td>
-
+		<td>{{line['city']}}</td>
 	</tr>
 {% endfor %}
 </table>
+
+
+</br></br>
+<h3>
+	The top 3 destinations for the last year
+</h3>
+</br></br>
+
+
+<table>
+	<th>Destination</th>
+
+{% for line in cities_year %}
+	<tr>
+		<td>{{line['city']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
 
 <a href="/logout">Logout</a>
 

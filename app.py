@@ -3,8 +3,13 @@ from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
 import matplotlib.pyplot as plt
 import numpy as np
+<<<<<<< HEAD
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+=======
+
+
+>>>>>>> 1e1f2fd937da171eac416e7fd36aba2e2123106a
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -20,7 +25,7 @@ conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
                        password='root',
-                       db='airline',
+                       db='airport',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -455,42 +460,35 @@ def track_my_spending_c():
 
     cursor = conn.cursor();
 
-    query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s'
-    cursor.execute(query, (username, last_year, current_year))
+    query = 'SELECT sum(sold_price) as price from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 12 month)'
+    cursor.execute(query, (username))
     data1 = cursor.fetchone()['price']
     print("Total price:", data1)
 
 
-    query1 = 'SELECT sum(sold_price) as sum, purchase_month, purchase_year from buys natural join paid natural join payment where customer_email = %s and purchase_year between %s and %s group by purchase_month, purchase_year'
-    cursor.execute(query1, (username, last_year, current_year))
+    query1 = 'SELECT sum(sold_price) as sum from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 12 month)'
+    cursor.execute(query1, (username))
     data = cursor.fetchall()
     #print("Printing:", data)
     #values = data['sum']
     print("data:", data)
-    l = [0]*len(data)  #labels as January2019 for example
-    p = [0]*len(data)  #total amount spend per monthYear
-    amount = [0]*len(data)
-    for i in range(len(data)):
-        l[i] = (data[i]['purchase_month'] + data[i]['purchase_year'])
-        p[i] = data[i]['sum']
+    # l = [0]*len(data)  #labels as January2019 for example
+    # p = [0]*len(data)  #total amount spend per monthYear
+    # amount = [0]*len(data)
+    # for i in range(len(data)):
+    #     l[i] = (data[i]['purchase_month'] + data[i]['purchase_year'])
+    #     p[i] = data[i]['sum']
+    #
+    # for i in range(len(data)):
+    #     amount[i] = p[i]
 
-    for i in range(len(data)):
-        amount[i] = p[i]
+    # print(amount)
 
-    print(amount)
-
-    labels = ["January","February","March","April","May","June","July","August"]
+    labels = ['January','February','March','April','May','June','July','August']
     price = [10,9,8,7,6,4,7,8]
 
-    #fig, ax = plt.subplots()
-    plt.bar(l, amount)
-    # plt.savefig('static/images/plot0.png')
-    # strFile = 'static/images/figure.png'
-    plt.savefig('static/images/figure3.png')
-    plt.close()
-
     cursor.close()
-    return render_template('track_my_spending_c.html', username=username, price=data1, values=[], labels=[], name = 'My Spendings', url = 'static/images/figure3.png')
+    return render_template('track_my_spending_c.html', username=username, price=data1, values=price, labels=labels)
 
 
 
@@ -530,6 +528,7 @@ def loginAuth_s():
         return render_template('login_s.html', error=error)
 
     session['username'] = username
+
     return redirect(url_for('home_s'))
 
 
@@ -568,23 +567,32 @@ def registerAuth_s():
 def home_s():
     # global search
     username= session['username']
+
     if username==None:
         error = "Please login first"
         return render_template('login_s.html', error = error)
 
-    return render_template('view_my_flights_s.html',email=email, data=[{'temp':1}])
+    cursor = conn.cursor()
+    query = 'SELECT airline_name FROM airline_staff WHERE username = %s'
+    cursor.execute(query, (username))
+	#stores the results in a variable
+    data = cursor.fetchone()
+    session['airline_name'] = data
+
+    return render_template('view_my_flights_s.html',username=username, data=[{'temp':1}])
 
 
-@app.route('/view_my_flights_staff', methods=['GET', 'POST'])
-def view_my_flights_staff():
+@app.route('/view_my_flights_s', methods=['GET', 'POST'])
+def view_my_flights_s():
     username = session['username']
+    airline_name = session['airline_name']
     cursor = conn.cursor()
 
     query = 'SELECT username, airline_name FROM airline_staff where username = %s'
 
     cursor.execute(query, (username))
     data = cursor.fetchone()
-    cursor.close()
+
     if data==None:
         error = "Please login first"
         return render_template('login_s.html', error = error)
@@ -595,977 +603,285 @@ def view_my_flights_staff():
     flights = cursor.fetchall()
     cursor.close()
 
-    return render_template('view_my_flights_staff.html', username=username, flights=flights)
+    return render_template('view_my_flights_s.html', username=username, flights=flights)
+
+
+@app.route('/change_flight_status_form', methods=['GET', 'POST'])
+def change_flight_status_form():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+    return render_template('change_flight_status.html', flights=[])
 
 
 @app.route('/change_flight_status', methods=['GET', 'POST'])
 def change_flight_status():
     username = session['username']
+    airline_name = session['airline_name']
+
     if username==None:
         return render_template('login_s.html')
-
 
     #get the flight number
     flight_num = request.form['flight_num']
     new_status = request.form['new_status']
+    cursor = conn.cursor()
+    query = 'UPDATE flight SET status = %s WHERE flight_num = %s and airline_name = %s'
+    cursor.execute(query, (new_status, flight_num, airline_name['airline_name']))
+    conn.commit()
 
-    if flight_num==None:
+    cursor.close()
 
-        flight_num_staffrr = request.form['flight_num_staffrr']
+    return redirect(url_for('view_my_flights_s'))
 
-        query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
 
-        #use fetchall() if you are expecting more than 1 data row
-        dep_data = cursor.fetchone()
 
-        query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-        cursor.execute(query, (flight_num_staffrr, airline_name_staffrr))
-        #stores the results in a variable
-        arr_data = cursor.fetchone()
-        cursor.close()
+@app.route('/create_new_flight_form', methods=['GET', 'POST'])
+def create_new_flight_form():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+    return render_template('create_new_flight.html', flights=[])
 
-        #save the flight number in the session
-        session['flight_num_dep'] = flight_num_dep
-        session['airline_name_dep'] = airline_name_dep
-        session['round_trip'] = round
-        session['flight_num_staffrr'] = flight_num_staffrr
-        session['airline_name_staffrr'] = airline_name_staffrr
-        # get information of the flight and send to the payment page to ask for credit card information
-        cursor = conn.cursor();
-        # print(dep_data)
-        price=arr_data['base_price'] + dep_data['base_price']
-        #session['price'] = price
 
-        return render_template('purchase_ticket_staff.html', flight_dep=[dep_data], flight_staffrr=[arr_data], price=price)
 
-    else:
-        query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-        cursor.execute(query, (flight_num_dep, airline_name_dep))
-        #stores the results in a variable
+@app.route('/create_new_flight', methods=['GET', 'POST'])
+def create_new_flight():
+    username = session['username']
+    airline_name = session['airline_name']
 
-        #use fetchall() if you are expecting more than 1 data row
-        dep_data = cursor.fetchone()
-        cursor.close()
+    #print("Airline name: ", airline_name['airline_name'])
+    #print("Username: ", username)
 
-        #save the flight number in the session
-        session['flight_num_dep'] = flight_num_dep
-        session['airline_name_dep'] = airline_name_dep
-        session['round_trip'] = round
-        session['flight_num_staffrr'] = 'None'
-        session['airline_name_staffrr'] = 'None'
+    if username==None:
+        return render_template('login_s.html')
 
-        # get information of the flight and send to the payment page to ask for credit card information
-        cursor = conn.cursor();
-        price=dep_data['base_price']
-        #session['price'] = price
-        return render_template('purchase_ticket_c.html', flight_dep=[dep_data], flight_staffrr=[], price=price)
-#
-# @app.route('/create_new_flight', methods=['GET', 'POST'])
-# def create_new_flight():
-#     email = session['email']
-#     if email==None:
-#         return render_template('login_staff.html')
-#
-#
-#     #get the flight number
-#     flight_num_dep = request.form['flight_num_dep']
-#     airline_name_dep = request.form["airline_name_dep"]
-#
-#
-#     round='no'
-#     try:
-#         flight_num_staffrr = request.form['flight_num_staffrr']
-#         airline_name_staffrr = request.form["airline_name_staffrr"]
-#         round='yes'
-#         #print(flight_num_staffrr)
-#     except:
-#         round='no'
-#
-#     cursor = conn.cursor()
-#     if round=='yes':
-#         flight_num_staffrr = request.form['flight_num_staffrr']
-#
-#         query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#
-#         #use fetchall() if you are expecting more than 1 data row
-#         dep_data = cursor.fetchone()
-#
-#         query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-#         cursor.execute(query, (flight_num_staffrr, airline_name_staffrr))
-#         #stores the results in a variable
-#         arr_data = cursor.fetchone()
-#         cursor.close()
-#
-#         #save the flight number in the session
-#         session['flight_num_dep'] = flight_num_dep
-#         session['airline_name_dep'] = airline_name_dep
-#         session['round_trip'] = round
-#         session['flight_num_staffrr'] = flight_num_staffrr
-#         session['airline_name_staffrr'] = airline_name_staffrr
-#         # get information of the flight and send to the payment page to ask for credit card information
-#         cursor = conn.cursor();
-#         # print(dep_data)
-#         price=arr_data['base_price'] + dep_data['base_price']
-#         #session['price'] = price
-#
-#         return render_template('purchase_ticket_staff.html', flight_dep=[dep_data], flight_staffrr=[arr_data], price=price)
-#
-#     else:
-#         query = 'SELECT flight_num, flight.airline_name, departure_staffirport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_staffirport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE flight_num = %s and flight.airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         #stores the results in a variable
-#
-#         #use fetchall() if you are expecting more than 1 data row
-#         dep_data = cursor.fetchone()
-#         cursor.close()
-#
-#         #save the flight number in the session
-#         session['flight_num_dep'] = flight_num_dep
-#         session['airline_name_dep'] = airline_name_dep
-#         session['round_trip'] = round
-#         session['flight_num_staffrr'] = 'None'
-#         session['airline_name_staffrr'] = 'None'
-#
-#         # get information of the flight and send to the payment page to ask for credit card information
-#         cursor = conn.cursor();
-#         price=dep_data['base_price']
-#         #session['price'] = price
-#         return render_template('purchase_ticket_c.html', flight_dep=[dep_data], flight_staffrr=[], price=price)
-#
-# @app.route('/add_airplane', methods=['GET', 'POST'])
-# def add_airplane():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/add_new_airport', methods=['GET', 'POST'])
-# def add_new_airport():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/view_all_booking_agents', methods=['GET', 'POST'])
-# def view_all_booking_agents():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/view_freq_customers', methods=['GET', 'POST'])
-# def view_freq_customers():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_s']
-#     airline_name_staffrr= session['airline_name_s']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/view_reports', methods=['GET', 'POST'])
-# def view_reports():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/comparision_of_revenue', methods=['GET', 'POST'])
-# def comparision_of_revenue():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
-#
-# @app.route('/view_top_destinations', methods=['GET', 'POST'])
-# def view_top_destinations():
-#     email = session['email']
-#     booking_staffgent_id = session['booking_staffgent_id']
-#     if email==None:
-#         print('Please login first to pay')
-#         return render_template('login.html')
-#
-#     #get credit card information from the form
-#     name = request.form['card_name']
-#     card_number = request.form['card_number']
-#     card_type = request.form['card_type']
-#     security_code = request.form['security_code']
-#     exp_month = request.form['exp_month']
-#     exp_year = request.form['exp_year']
-#
-#     customer_email = request.form['email']
-#     first_name = request.form['first_name']
-#     last_name = request.form['last_name']
-#     building_number = request.form['building_number']
-#     street = request.form['street']
-#     city = request.form['city']
-#     state = request.form['state']
-#     passport_num = request.form['passport_num']
-#     passport_exp_d = request.form['passport_exp_d']
-#     passport_exp_m = request.form['passport_exp_m']
-#     passport_exp_y = request.form['passport_exp_y']
-#     passport_country = request.form['passport_country']
-#     dob_d = request.form['dob_d']
-#     dob_m = request.form['dob_m']
-#     dob_y = request.form['dob_y']
-#
-#
-#     #get details of the flight saved in the session
-#     flight_num_dep= session['flight_num_dep']
-#     airline_name_dep= session['airline_name_dep']
-#     round= session['round_trip']
-#     flight_num_staffrr= session['flight_num_staffrr']
-#     airline_name_staffrr= session['airline_name_staffrr']
-#     #price=session['price']
-#     cursor = conn.cursor();
-#     #card information
-#     query0 = 'select email from customer where email = %s'
-#     cursor.execute(query0, (customer_email))
-#     data = cursor.fetchone()
-#
-#     if data == None:
-#         ins = 'INSERT INTO customer(email, first_name, last_name, building_number, street, city, state, passport_number, passport_ex_day, passport_ex_month, passport_ex_year, passport_country, dob_day, dob_month, dob_year) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(ins, (customer_email, first_name, last_name, building_number, street, city, state, passport_num, passport_exp_d, passport_exp_m, passport_exp_y, passport_country, dob_d, dob_m, dob_y))
-#         conn.commit()
-#
-#     # use information to process the payment and purchase the flight
-#     if round=='no':
-#
-#
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price = cursor.fetchone()['base_price']
-#         price_staff = float(price) * 0.9
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         cursor.close()
-#
-#         return redirect(url_for('home_staff'))
-#
-#     else:
-#         cursor = conn.cursor();
-#         from random import randint
-#         ticket_number= str(randint(10000, 99999))
-#         payment_number = str(randint(10000000, 99999999))
-#
-#         query = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query, (flight_num_dep, airline_name_dep))
-#         price_dep = cursor.fetchone()['base_price']
-#
-#         price_dep_staff = float(price_dep) * 0.9
-#
-#         query6 = 'SELECT base_price FROM flight WHERE flight_num = %s and airline_name = %s'
-#         cursor.execute(query6, (flight_num_staffrr, airline_name_staffrr))
-#         price_staffrr = cursor.fetchone()['base_price']
-#         price_staffrr_staff = float(price_staffrr)*0.9
-#
-#         price = price_dep + price_staffrr
-#         price_staff = price_dep_staff + price_staffrr_staff
-#
-#         query1 = 'insert into ticket(ticket_id, flight_num, airline_name) values (%s, %s, %s)'
-#         cursor.execute(query1, (ticket_number, flight_num_dep, airline_name_dep))
-#
-#         query2 = 'insert into buys(ticket_id, customer_email, booking_staffgent_id) values (%s, %s, %s)'
-#         cursor.execute(query2, (ticket_number, customer_email, booking_staffgent_id))
-#
-#         query3 = 'insert into payment(payment_num, card_type, card_number, card_name, security_code, expiration_month, expiration_year, sold_price) values(%s, %s, %s, %s, %s, %s, %s, %s)'
-#         cursor.execute(query3, (payment_number, card_type, card_number, name, security_code, exp_month, exp_year, price))
-#
-#         query4 = 'insert into paid(ticket_id, payment_num) values (%s, %s)'
-#         cursor.execute(query4, (ticket_number, payment_number))
-#
-#         conn.commit()
-#         return redirect(url_for('home_staff'))
+    #create a new flight
+    flight_num = request.form["flight_num"]
+    airplane_id = request.form["airplane_id"]
+    base_price = request.form["base_price"]
+    departure_hour = request.form["departure_hour"]
+    departure_min = request.form["departure_min"]
+    departure_day = request.form["departure_day"]
+    departure_month = request.form["departure_month"]
+    departure_year = request.form["departure_year"]
+    departure_airport = request.form["departure_airport"]
+    arrival_hour = request.form["arrival_hour"]
+    arrival_min = request.form["arrival_min"]
+    arrival_day = request.form["arrival_day"]
+    arrival_month = request.form["arrival_month"]
+    arrival_year = request.form["arrival_year"]
+    arrival_airport = request.form["arrival_airport"]
+    status = request.form["status"]
+
+
+    cursor = conn.cursor()
+
+    query = 'INSERT INTO flight(flight_num, airline_name, airplane_id, base_price, departure_hour, departure_min, departure_day, departure_month, departure_year, departure_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, arrival_airport, status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    cursor.execute(query, (flight_num, airline_name['airline_name'], airplane_id, base_price, departure_hour, departure_min, departure_day, departure_month, departure_year, departure_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, arrival_airport, status))
+    conn.commit()
+
+    # query = 'SELECT * FROM flight where airline_name = %s'
+    # cursor.execute(query, (airline_name))
+    # flights = cursor.fetchall()
+    cursor.close()
+
+    # return render_template('create_new_flight.html', flights=[])
+    return redirect(url_for('view_my_flights_s'))
+
+
+@app.route('/add_airplane_form', methods=['GET', 'POST'])
+def add_airplane_form():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+    return render_template('add_airplane.html', flights=[])
+
+
+
+@app.route('/add_airplane', methods=['GET', 'POST'])
+def add_airplane():
+    username = session['username']
+    airline_name = session['airline_name']
+
+    if username==None:
+        print('Please login first add airplane')
+        return render_template('login_s.html')
+
+    #get credit card information from the form
+    airplane_id = request.form['airplane_id']
+    num_of_seats = request.form['num_of_seats']
+
+    cursor = conn.cursor()
+    query = 'INSERT INTO airplane(id, airline_name, num_of_seats) VALUES (%s, %s, %s)'
+    cursor.execute(query, (airplane_id, airline_name['airline_name'], num_of_seats))
+    conn.commit()
+
+    query = 'SELECT id, num_of_seats FROM airplane WHERE airline_name = %s'
+    cursor.execute(query, (airline_name['airline_name']))
+    flights = cursor.fetchall()
+    cursor.close()
+    return render_template('add_airplane.html', flights=flights)
+
+
+@app.route('/add_airport_form', methods=['GET', 'POST'])
+def add_airport_form():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+    return render_template('add_airport.html', flights=[])
+
+
+
+@app.route('/add_airport', methods=['GET', 'POST'])
+def add_airport():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        print('Please login first to pay')
+        return render_template('login_s.html')
+
+    airport_id = request.form['airport_id']
+    name = request.form['name']
+    city = request.form['city']
+
+    cursor = conn.cursor()
+    query = 'INSERT INTO airport(id, name, city) VALUES (%s, %s, %s)'
+    cursor.execute(query, (airport_id, name, city))
+    conn.commit()
+
+    query = 'SELECT * FROM airport'
+    cursor.execute(query)
+    flights = cursor.fetchall()
+    cursor.close()
+
+    return render_template('add_airport.html', flights=flights)
+
+
+@app.route('/view_all_booking_agents', methods=['GET', 'POST'])
+def view_all_booking_agents():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        print('Please login first to pay')
+        return render_template('login_s.html')
+
+    cursor = conn.cursor()
+	#top 5 booking agents based on num tickets sold for the last month
+    query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 1 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by count(ticket_id) desc limit 5'
+    cursor.execute(query, ())
+    top_agents_month = cursor.fetchall()
+    print("top_agents_month", top_agents_month)
+	#top 5 booking agents based on num tickets for the last year
+    query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 12 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by count(ticket_id) desc limit 5'
+    cursor.execute(query, ())
+    top_agents_year = cursor.fetchall()
+
+
+	#top 5 booking agents based on commissions received for the last year
+    query = 'SELECT buys.booking_agent_id FROM booking_agent, payment natural join paid natural join buys where payment_time >= date_sub(now(), interval 12 month) and buys.booking_agent_id = booking_agent.booking_agent_id group by buys.booking_agent_id order by sum(sold_price*0.1) desc limit 5'
+    cursor.execute(query, ())
+    top_agents_comm = cursor.fetchall()
+
+    return render_template('view_all_booking_agents.html', top_agents_month=top_agents_month, top_agents_year=top_agents_year, top_agents_comm=top_agents_comm)
+
+
+@app.route('/view_freq_customers', methods=['GET', 'POST'])
+def view_freq_customers():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        print('Please login first to pay')
+        return render_template('login_s.html')
+
+    cursor = conn.cursor()
+
+    query = 'SELECT customer_email FROM buys natural join paid natural join payment where payment_time >= date_sub(now(), interval 12 month) GROUP BY customer_email ORDER BY COUNT(ticket_id) DESC limit 1'
+    cursor.execute(query)
+    customer = cursor.fetchone()
+
+    query1 = 'SELECT flight_num, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, base_price FROM buys natural join ticket natural join flight where customer_email = %s and airline_name = %s'
+    cursor.execute(query1, (customer['customer_email'], airline_name['airline_name']))
+    flights = cursor.fetchall()
+
+    return render_template('view_freq_customers.html', customer=customer, flights = flights)
+
+
+@app.route('/view_reports_form', methods=['GET', 'POST'])
+def view_reports_form():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+    return render_template('view_reports.html', flights=[])
+
+@app.route('/view_reports', methods=['GET', 'POST'])
+def view_reports():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+
+    months = request.form['months']
+    cursor = conn.cursor();
+
+    query = 'SELECT count(ticket_id) as count FROM ticket natural join paid natural join payment where payment_time >= date_sub(now(), interval %s month) and airline_name =%s'
+    cursor.execute(query, (months, airline_name['airline_name']))
+    count = cursor.fetchone()['count']
+
+    cursor.close()
+    return render_template('view_reports.html', count=count)
+
+
+@app.route('/comparision_of_revenue', methods=['GET', 'POST'])
+def comparision_of_revenue():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+
+    cursor = conn.cursor()
+    query1 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is null'
+    cursor.execute(query1, (airline_name['airline_name']))
+    direct = cursor.fetchone()
+    if direct['sum'] == None:
+        direct['sum'] = 0
+    print('direct:', direct)
+
+    query2 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is not null'
+    cursor.execute(query2, (airline_name['airline_name']))
+    indirect = cursor.fetchone()
+    print('indirect:', indirect)
+
+    return render_template('comparison_of_revenue.html', direct=direct, indirect = indirect)
+
+
+
+@app.route('/view_top_destinations', methods=['GET', 'POST'])
+def view_top_destinations():
+    username = session['username']
+    airline_name = session['airline_name']
+    if username==None:
+        return render_template('login_s.html')
+
+    cursor = conn.cursor()
+	#top destinations within the airline_name
+    query = 'SELECT city FROM flight natural join ticket natural join buys natural join paid natural join payment, airport where airport.id = flight.arrival_airport and payment_time >= date_sub(now(), interval 3 month) and airline_name = %s group by flight.arrival_airport order by count(flight.arrival_airport) desc limit 3'
+    cursor.execute(query, (airline_name['airline_name']))
+    cities_month = cursor.fetchall()
+    print("cities_month", cities_month)
+	#top destinations within the airline_name
+    query1 = 'SELECT city FROM flight natural join ticket natural join buys natural join paid natural join payment, airport where airport.id = flight.arrival_airport and payment_time >= date_sub(now(), interval 12 month) and airline_name = %s group by flight.arrival_airport order by count(flight.arrival_airport) desc limit 3'
+    cursor.execute(query1, (airline_name['airline_name']))
+    cities_year = cursor.fetchall()
+
+
+    cursor.close()
+    return render_template('view_top_destinations.html', cities_month=cities_month, cities_year=cities_year)
 
 #Run the app on localhost port 5000
 #debug = True -> you don't have to restart flask
