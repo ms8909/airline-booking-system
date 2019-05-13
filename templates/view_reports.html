@@ -21,13 +21,15 @@
 	Please specify first the range of months for the Reports
 </h3>
 
+
 <form action="/view_reports" method="POST">
-	<input type="text" name = "months" placeholder="Number of Months" required/> </br>
-	<input type="submit" value = Search />
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
+		<input type="text" name = "start_date" placeholder="Start Date in yyyy-mm-dd" required/> </br>
+		<input type="text" name = "end_date" placeholder="End Date in yyyy-mm-dd" required/></br>
+		<input type="submit" value = Search/>
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
 
 <style type="text/css">
 	table, th, td{

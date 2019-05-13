@@ -813,11 +813,16 @@ def view_reports():
     if username==None:
         return render_template('login_s.html')
 
-    months = request.form['months']
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+
+    start_date= start_date+' 00:00:00'
+    end_date= end_date+' 00:00:00'
+
     cursor = conn.cursor();
 
-    query = 'SELECT count(ticket_id) as count FROM ticket natural join paid natural join payment where payment_time >= date_sub(now(), interval %s month) and airline_name =%s'
-    cursor.execute(query, (months, airline_name['airline_name']))
+    query = 'SELECT count(ticket_id) as count FROM ticket natural join paid natural join payment where payment_time between %s and %s and airline_name =%s'
+    cursor.execute(query, (start_date,end_date, airline_name['airline_name']))
     count = cursor.fetchone()['count']
 
     cursor.close()
