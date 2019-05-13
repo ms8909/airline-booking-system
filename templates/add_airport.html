@@ -16,9 +16,10 @@
 </br></br>
 
 
-<form action="/add_airplane" method="POST">
-	<input type="text" name = "airplane_id" placeholder="Airplane ID" required/> </br>
-	<input type="text" name = "num_of_seats" placeholder="Number of Seats" required/></br>
+<form action="/add_airport" method="POST">
+	<input type="text" name = "airport_id" placeholder="Airport ID" required/> </br>
+	<input type="text" name = "name" placeholder="Airport Name" required/></br>
+	<input type="text" name = "city" placeholder="Airport City" required/></br>
 	<input type="submit" value = Add/>
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
@@ -32,13 +33,15 @@
 </style>
 
 <table>
-	<th>Airplane ID</th>
-	<th>Number of Seats</th>
+	<th>Airport ID</th>
+	<th>Airport Name</th>
+	<th>Airport City</th>
 
 {% for line in flights %}
 	<tr>
 		<td>{{line['id']}}</td>
-		<td>{{line['num_of_seats']}}</td>
+		<td>{{line['name']}}</td>
+		<td>{{line['city']}}</td>
 
 	</tr>
 {% endfor %}

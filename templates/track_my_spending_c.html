@@ -1,9 +1,44 @@
+<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>{{ title }}</title>
-</head>
-<body>
+	<head>
+    <meta charset="utf-8" />
+    <title>{{ title }}</title>
+		<script src= "https://cdn.zingchart.com/zingchart.min.js"></script>
+		<script> zingchart.MODULESDIR = "https://cdn.zingchart.com/modules/";
+		ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9","ee6b7db5b51705a13dc2339db3edaf6d"];</script></head>
+	<body>
+		<div id='myChart'></div>
+    <script>
+    var myData = {{values}};
+
+    var myConfig = {
+        "graphset":[
+            {
+                "type":"bar",
+                "title":{
+                    "text":"Bar Chart"
+                },
+                "scale-x":{
+                    "labels": {{labels | safe}}
+                },
+                "series":[
+                    {
+                        "values": myData
+                    }
+                ]
+            }
+        ]
+    };
+		zingchart.render({
+		id : 'myChart',
+		data : myConfig,
+		height: 400,
+		width: "100%"
+		});
+
+    </script>
+
+	</body>
 
 </br></br>
 <a href="/view_my_flights_c">View My Flights</a>
@@ -11,19 +46,10 @@
 </br></br>
 
 
-<style type="text/css">
-	table, th, td{
-		border: 1px solid black;
-	}
-</style>
-
 </br></br>
 <h2>
 	Total Amount of Your Spending for the past year is {{price}}
 </h2>
-
-<p>{{ name }}</p>
-  <img src={{ url }} alt="Chart" height="400" width="800">
 
 
 </br></br>
