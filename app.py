@@ -452,29 +452,28 @@ def track_my_spending_c():
     print("Total price:", data1)
 
 
-    query1 = 'SELECT sum(sold_price) as sum from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 12 month)'
+    query1 = "SELECT sum(sold_price) as sum, CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) ) AS thedate from buys natural join paid natural join payment where customer_email = %s and payment_time >= date_sub(now(), interval 6 month) group by CONCAT( YEAR( payment_time ) , '-', MONTH( payment_time ) )"
     cursor.execute(query1, (username))
     data = cursor.fetchall()
     #print("Printing:", data)
     #values = data['sum']
     print("data:", data)
-    # l = [0]*len(data)  #labels as January2019 for example
-    # p = [0]*len(data)  #total amount spend per monthYear
-    # amount = [0]*len(data)
-    # for i in range(len(data)):
-    #     l[i] = (data[i]['purchase_month'] + data[i]['purchase_year'])
-    #     p[i] = data[i]['sum']
-    #
-    # for i in range(len(data)):
-    #     amount[i] = p[i]
 
-    # print(amount)
+    l=[]    #labels
+    p=[]    #price
+    for k in data:
+        l.append(k['thedate'])
+        p.append(float(k['sum']))
 
+    print("labels:", l)
+    print("price:", p)
+
+    #these are just to test the code
     labels = ['January','February','March','April','May','June','July','August']
     price = [10,9,8,7,6,4,7,8]
 
     cursor.close()
-    return render_template('track_my_spending_c.html', username=username, price=data1, values=price, labels=labels)
+    return render_template('track_my_spending_c.html', username=username, price=data1, values=p, labels=l)
 
 
 
