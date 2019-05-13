@@ -34,7 +34,7 @@ def loginAuth_a():
 			return redirect(url_for('home_a'))
 	else:
 		error = 'Invalid login or username'
-		return render_template('login_c.html', error=error)
+		return render_template('login_a.html', error=error)
 
 #Authenticates the register
 @app.route('/registerAuth_a', methods=['GET', 'POST'])
