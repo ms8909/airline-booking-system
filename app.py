@@ -431,14 +431,6 @@ def payment_c():
 
 @app.route('/track_my_spending_c', methods=['GET', 'POST'])
 def track_my_spending_c():
-
-    import datetime
-    x = datetime.datetime.now()
-    current_year = x.year
-    last_year = x.year - 1
-    current_month = x.strftime("%B")
-
-
     username = session['username']
 
     # start_month = request.form['start_month']
