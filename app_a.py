@@ -89,10 +89,9 @@ def search_a():
 	arrival_y = request.form['arrival_y']
 	cursor = conn.cursor()
 	if round_trip=='No':
-		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year %s'
+		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
 		cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y))
 		data = cursor.fetchall()
-		cursor.close()
 		error = None
 		print(data)
 		if(data):
@@ -106,7 +105,7 @@ def search_a():
 				price = cursor.fetchone()
 				print(price)
 				queryseats = 'SELECT num_of_seats from flight, airplane where airplane_id=id and flight_num= %s and flight.airline_name= %s'
-				cursor.execute(queryprice, (d['flight_num'], d['airline_name']))
+				cursor.execute(queryseats, (d['flight_num'], d['airline_name']))
 				seats = cursor.fetchone()
 				print(seats)
 				if count['c']/seats['num_of_seats'] >= .7:
@@ -118,7 +117,7 @@ def search_a():
 			message = 'No Tickets available'
 			return render_template('home_a.html', error=message)
 	else:
-		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status, num_of_seats FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year %s'
+		query = 'SELECT flight_num, flight.airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, status FROM flight join airplane on (airplane.id = flight.airplane_id) and (flight.airline_name = airplane.airline_name) WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
 		cursor.execute(query, (src_airport, des_airport, departure_d, departure_m, departure_y ))
 		data_deparature = cursor.fetchall()
 		for d in data_deparature:
@@ -241,7 +240,8 @@ def purchase_ticket_a():
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
         # print(dep_data)
-        price=arr_data['base_price'] + dep_data['base_price']
+        price=float(arr_data['base_price']) + float(dep_data['base_price'])
+        print("price", price, arr_data['base_price'], dep_data['base_price'])
         #session['price'] = price
 
         return render_template('purchase_ticket_a.html', flight_dep=[dep_data], flight_arr=[arr_data], price=price)
@@ -284,7 +284,8 @@ def purchase_ticket_a():
 
         # get information of the flight and send to the payment page to ask for credit card information
         cursor = conn.cursor();
-        price=dep_data['base_price']
+        price=float(dep_data['base_price'])
+
         #session['price'] = price
         return render_template('purchase_ticket_a.html', flight_dep=[dep_data], flight_arr=[], price=price)
 

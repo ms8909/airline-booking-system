@@ -46,7 +46,7 @@
 	<th>arrival month</th>
 	<th>arrival year</th>
 	<th>Status</th>
-	<th>Number of Seats</th>
+	<th>Price</th>
 	<th>Book Now</th>
 
 <form action="/purchase_ticket_a" method="POST">
@@ -67,7 +67,7 @@
 		<td>{{line['arrival_month']}}</td>
 		<td>{{line['arrival_year']}}</td>
 		<td>{{line['status']}}</td>
-		<td>{{line['num_of_seats']}}</td>
+		<td>{{line['price']}}</td>
 
 		<td>
     <input type="checkbox" name="flight_num_dep" value={{line['flight_num']}}>
@@ -93,7 +93,7 @@
 		<td>{{line['arrival_month']}}</td>
 		<td>{{line['arrival_year']}}</td>
 		<td>{{line['status']}}</td>
-		<td>{{line['num_of_seats']}}</td>
+		<td>{{line['price']}}</td>
 
 		<td>
     <input type="checkbox" name="flight_num_arr" value={{line['flight_num']}}>
