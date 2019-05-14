@@ -15,7 +15,14 @@
 <a href="/view_top_destinations">View Top Destinations</a>
 </br></br>
 
-
+<form action="/view_my_flights_s" method="POST">
+	<h1>Welcome {{username}}</h1>
+	<input type="text" name = "src_airport" placeholder="Source Airport" required/> </br>
+	<input type="text" name = "des_airport" placeholder="Destination Airport" required/> </br>
+	<input type="text" name = "start_date" placeholder="Start Date in yyyy-mm-dd" required/> </br>
+	<input type="text" name = "end_date" placeholder="End Date in yyyy-mm-dd" required/></br>
+	<input type="submit" value = Search />
+</form>
 
 <style type="text/css">
 	table, th, td{

@@ -19,6 +19,9 @@
 	</br></br>
 
 		<div id='myChart'></div>
+		<h2>
+			Last Month
+		</h2>
 		<script>
 		var myConfig = {
 		  "type":"pie",
@@ -39,6 +42,32 @@
 		});
 
 		</script>
+
+	</br>
+	<div id='myChart'></div>
+	<h2>
+		Last Year
+	</h2>
+	<script>
+	var myConfig = {
+		"type":"pie",
+		"title":{
+			"text":"Pie Chart"
+		},
+		"series":[
+			{"values":[{{directy['sum']}}]},     //{{direct}} should return a number only
+			{"values":[{{indirecty['sum']}}]}    //{{indirect}} should return a number only
+		]
+	};
+
+	zingchart.render({
+		id : 'myChart',
+		data : myConfig,
+		height: 400,
+		width: "100%"
+	});
+
+	</script>
 
 <a href="/logout">Logout</a>
 

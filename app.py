@@ -728,10 +728,10 @@ def loginAuth_s():
 @app.route('/registerAuth_s', methods=['GET', 'POST'])
 def registerAuth_s():
     username = request.form['username']
-    password = request. form['password']
-    first_name = request. form['first_name']
-    last_name = request. form['last_name']
-    airline_name = request. form['airline_name']
+    password = request.form['password']
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    airline_name = request.form['airline_name']
     cursor = conn.cursor()
     query = 'SELECT * FROM airline_staff WHERE username = %s and password = %s'
     cursor.execute(query, (username, password))
@@ -790,9 +790,35 @@ def view_my_flights_s():
         error = "Please login first"
         return render_template('login_s.html', error = error)
 
-    query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
+    try:
+        src = request.form['src_airport']
+        des = request.form['des_airport']
+        range1= True
+    except:
+        range1= False
 
-    cursor.execute(query, (data['airline_name']))
+    try:
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        start_date= start_date+' 00:00:00'
+        end_date= end_date+' 00:00:00'
+        range2= True
+    except:
+        range2= False
+
+    if range1== False  and range2==False:
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
+        cursor.execute(query, (data['airline_name']))
+    elif range1== True  and range2==False:
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
+        cursor.execute(query, (data['airline_name']))
+    elif range1== False  and range2==True:
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
+        cursor.execute(query, (data['airline_name']))
+    else:
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
+        cursor.execute(query, (data['airline_name']))
+
     flights = cursor.fetchall()
     cursor.close()
 
@@ -1056,19 +1082,33 @@ def comparision_of_revenue():
         return render_template('login_s.html')
 
     cursor = conn.cursor()
-    query1 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is null'
+    query1 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is null and payment_time >= date_sub(now(), interval 1 month)'
     cursor.execute(query1, (airline_name['airline_name']))
     direct = cursor.fetchone()
     if direct['sum'] == None:
         direct['sum'] = 0
     print('direct:', direct)
 
-    query2 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is not null'
+    query2 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is not null and payment_time >= date_sub(now(), interval 1 month)'
     cursor.execute(query2, (airline_name['airline_name']))
     indirect = cursor.fetchone()
     print('indirect:', indirect)
 
-    return render_template('comparison_of_revenue.html', direct=direct, indirect = indirect)
+
+    cursor = conn.cursor()
+    query3 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is null and payment_time >= date_sub(now(), interval 12 month)'
+    cursor.execute(query3, (airline_name['airline_name']))
+    directy = cursor.fetchone()
+    if direct['sum'] == None:
+        direct['sum'] = 0
+    print('direct:', direct)
+
+    query4 = 'SELECT sum(sold_price) as sum FROM ticket natural join buys natural join paid natural join payment WHERE airline_name = %s and booking_agent_id is not null and payment_time >= date_sub(now(), interval 12 month)'
+    cursor.execute(query4, (airline_name['airline_name']))
+    indirecty = cursor.fetchone()
+    print('indirect:', indirect)
+
+    return render_template('comparison_of_revenue.html', direct=direct, indirect = indirect,directy=directy, indirecty = indirecty )
 
 
 
