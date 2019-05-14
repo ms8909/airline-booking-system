@@ -22,7 +22,7 @@ conn = pymysql.connect(host='localhost',
                        user='root',
                        port=8883,
                        password='root',
-                       db='airport',
+                       db='airline',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -264,7 +264,7 @@ def search_c():
     #cursor used to send queries
     cursor = conn.cursor()
     if round_trip=='No':
-        
+
 
         #executes query
         #query = 'SELECT * FROM flight WHERE departure_airport = %s and arrival_airport = %s and departure_day = %s and departure_month = %s and departure_year = %s'
