@@ -800,8 +800,8 @@ def view_my_flights_s():
     try:
         start_date = request.form['start_date']
         end_date = request.form['end_date']
-        start_date= start_date+' 00:00:00'
-        end_date= end_date+' 00:00:00'
+        # start_date= start_date+' 00:00:00'
+        # end_date= end_date+' 00:00:00'
         range2= True
     except:
         range2= False
@@ -810,14 +810,14 @@ def view_my_flights_s():
         query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
         cursor.execute(query, (data['airline_name']))
     elif range1== True  and range2==False:
-        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
-        cursor.execute(query, (data['airline_name']))
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s and departure_airport= %s and arrival_airport= %s'
+        cursor.execute(query, (data['airline_name'],src, des ))
     elif range1== False  and range2==True:
-        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
-        cursor.execute(query, (data['airline_name']))
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s and departure_year >= %s and  departure_year <= %s'
+        cursor.execute(query, (data['airline_name'], start_date, end_date))
     else:
-        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s'
-        cursor.execute(query, (data['airline_name']))
+        query = 'SELECT flight_num, status, airline_name, departure_airport, departure_hour, departure_min, departure_day, departure_month, departure_year, arrival_airport, arrival_hour, arrival_min, arrival_day, arrival_month, arrival_year, base_price FROM flight where airline_name = %s and departure_airport= %s and arrival_airport= %s and departure_year >= %s and  departure_year <= %s'
+        cursor.execute(query, (data['airline_name'],src, des, start_date, end_date))
 
     flights = cursor.fetchall()
     cursor.close()
