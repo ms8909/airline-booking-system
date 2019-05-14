@@ -820,10 +820,29 @@ def view_my_flights_s():
         cursor.execute(query, (data['airline_name'],src, des, start_date, end_date))
 
     flights = cursor.fetchall()
-    cursor.close()
 
+    # get all the customers
+    cursor.close()
     return render_template('view_my_flights_s.html', username=username, flights=flights)
 
+
+@app.route('/view_customer_s', methods=['GET', 'POST'])
+def view_customer_s():
+    username = session['username']
+    if username==None:
+        return render_template('login_s.html')
+    flight_num = request.form['flight_num']
+    airline_name = request.form['airline_name']
+
+    # run query based on flight number and airline name and send back the results
+    cursor = conn.cursor()
+
+    query = 'SELECT email, first_name, last_name, passport_number, dob_year from customer, buys, ticket where customer.email= buys.customer_email and buys.ticket_id= ticket.ticket_id and ticket.flight_num= %s  and ticket.airline_name= %s'
+
+    cursor.execute(query, (flight_num,airline_name ))
+    data = cursor.fetchall()
+
+    return render_template('view_customers_s.html', customers=data)
 
 @app.route('/change_flight_status_form', methods=['GET', 'POST'])
 def change_flight_status_form():
